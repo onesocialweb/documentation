@@ -80,11 +80,13 @@
           <osw:acl-action permission="http://onesocialweb.org/spec/1.0/acl/permission/grant">
             http://onesocialweb.org/spec/1.0/acl/action/view
           </osw:acl-action>
-          <osw:acl-subject type="http://onesocialweb.org/spec/1.0/acl/subject/everyone"></osw:acl-subject>
+          <osw:acl-subject type="http://onesocialweb.org/spec/1.0/acl/subject/everyone" />
         </osw:acl-rule>
       </birthday>
       <note>
-        <value>Son of King Hamlet and Queen Gertrude. Great fan of Lego MindStorms. Loves Smashing Pumpkins classis album Mellon Collie And The Infinite Sadness as well as 60s Britain series the Avengers.</value>
+        <value>Son of King Hamlet and Queen Gertrude. Great fan of Lego MindStorms. 
+Loves Smashing Pumpkins classis album Mellon Collie And 
+The Infinite Sadness as well as 60s Britain series the Avengers.</value>
         <osw:acl-rule>[.. ACCESS RULE FOR THIS FIELD ...]</osw:acl-rule>
       </note>
       <addresses>
