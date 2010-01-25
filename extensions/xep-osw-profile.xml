@@ -1,0 +1,282 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE xep SYSTEM 'xep.dtd' [
+  <!ENTITY % ents SYSTEM 'xep.ent'>
+%ents;
+]>
+<?xml-stylesheet type='text/xsl' href='xep.xsl'?>
+<xep>
+<header>
+  <title>Social Profile</title>
+  <abstract>This specification defines an XMPP protocol extension for sharing user "profiles" (in the social networking sense of the term). The protocol enables users to define their profile, share it with other users, and query other users for their profile. The profile is supporting fine grained privacy control: users can assign access control rules on a field per field basis. In addition, users can delegate write access rights to elements of their profile to other entities. This protocol aims at providing a flexible platform for social profile management in a decentralized social network, thus enabling all social network use cases related to user profiles. This extension is part of the OneSocialWeb suite of XMPP extensions. The data format is inspired by Portable Contacts and OpenSocial, and it is our intention to align.</abstract>
+  <number/>
+  <status/>
+  <type/>
+  <sig/>
+  <approver/>
+  <dependencies>
+    <spec>XMPP Core</spec>
+    <spec>XEP-0030</spec>
+    <spec>XEP-0059</spec>
+  </dependencies>
+  <supersedes>
+    <spec>XEP-0054</spec>
+  </supersedes>
+  <supersededby/>
+  <shortname>NOT_YET_ASSIGNED</shortname>
+  <author>
+    <firstname>Laurent</firstname>
+    <surname>Eschenauer</surname>
+    <email>laurent.eschenauer@vodafone.com</email>
+    <jid></jid>
+  </author>
+  <revision>
+    <version>0.0.1dev</version>
+    <date>2010-01-25</date>
+    <initials>le</initials>
+    <remark><p>Ongoing development of first draft.</p></remark>
+  </revision>
+</header>
+<section1 topic='Introduction' anchor='intro'>
+  <section2 topic='Overview' anchor='intro-overview'>
+    <p>The XMPP Extension defined in this document is part of a collection of XMPP extensions that forms the OneSocialWeb (OSW) protocol. The purpose of the OneSocialWeb protocol is to enable free, open, and decentralized social applications on the web. In particular, this protocol can be used to turn any XMPP server into a full fledged social network, participating in the OneSocialWeb federation. The suite of extension covers all the usual social networking use cases such as user profiles, relationships, activity streams and third party applications. In addition, it provides support for fine grained access control, realtime notification and collaboration.</p>
+    <p>The Social Profile extension defined in this document addresses the requirement for publishing, sharing, and retrieving an entity social profile. By profile, we mean a document describing an entity with details such as name, birthday, address, avatar picture, but also things like favorite movies, latest location, or in fact any other attribute that a user would like to have in its profile.</p>
+    <p>The data model used in this extension is inspired by Portable Contacts and OpenSocial however we were not able to wire-align at this stage. In particular, we had to make changes to accommodate for our privacy framework. It is our intention however to work with these standard groups to find solutions and try to align our specifications.</p>
+    <p>This protocol fills similar needs than the VCard (XEP-0054) currently in use by most Jabber/XMPP servers. However XEP-0054 does not provide any framework for fine grained access control to profile fields.</p>
+  </section2>
+</section1>
+
+<section1 topic='Requirements' anchor='reqs'>
+  <p>STRONGLY RECOMMENDED.</p>
+</section1>
+
+<section1 topic='Glossary' anchor='glossary'>
+  <p>OPTIONAL.</p>
+</section1>
+
+<section1 topic='Publisher Use Cases' anchor='publisher'>
+  <p>This section defines the use cases for and protocols to be used by any entity that wishes to manipulate its own profile, stored at its server. In particular to create and update its whole profile or a specific field in its profile.</p>
+
+  <section2 topic='Publish Profile' anchor='publisher-publish'>
+    <p>An entity can publish its profile (and thus overwrite any previously published profile) by sending an IQ-set to the bare domain containing a &lt;publish/&gt; element with an &lt;entry/&gt; child. The entry syntax should conform to the <link url='#model'>profile data model</link>.</p>
+    <p>It should be however noted that:</p>
+    <ul>
+      <li>The publisher SHOULD NOT provide an &lt;id/&gt; element in the profile. The &lt;id/&gt; element MUST be overwritten by the server, in order to guarantee validity (e.g. that the publisher is not trying to spoof another id).</li>
+      <li>Each profile field MUST contain at least one &lt;acl-rule/&gt; element defining the access control for the view action. If no or invalid value is provided, the server MAY provide its own value or MAY exclude that field from the profile.</li>
+    </ul>
+
+    <p>In the following example, &lt;hamlet@denmark.lit&gt; wants to publish his profile. His profile consist of a birthdate, an address and a short bio. He uses his favorite social web client and publishes the following:</p>
+
+    <example caption='Entity publishes its profile'><![CDATA[
+<iq type='set'
+    from='hamlet@denmark.lit/snsclient'
+    to='denmark.lit'
+    id='osw1'>
+  <publish xmlns="http://onesocialweb.org/protocol/0.1/profile#publish">
+    <entry xmlns="http://www.portablecontacts.net/draft-spec.html" 
+           xmlns:osw="http://onesocialweb.org/spec/1.0/">
+      <birthday>
+        <value>18/02/1654</value>
+        <osw:acl-rule>
+          <osw:acl-action permission="http://onesocialweb.org/spec/1.0/acl/permission/grant">
+            http://onesocialweb.org/spec/1.0/acl/action/view
+          </osw:acl-action>
+          <osw:acl-subject type="http://onesocialweb.org/spec/1.0/acl/subject/everyone"></osw:acl-subject>
+        </osw:acl-rule>
+      </birthday>
+      <note>
+        <value>Son of King Hamlet and Queen Gertrude. Great fan of Lego MindStorms. Loves Smashing Pumpkins classis album Mellon Collie And The Infinite Sadness as well as 60s Britain series the Avengers.</value>
+        <osw:acl-rule>[.. ACCESS RULE FOR THIS FIELD ...]</osw:acl-rule>
+      </note>
+      <addresses>
+        <type>home</type>
+          <streetAddress>...</streetAddress>
+          <locality>..</locality>
+          <region></region>
+          <postalCode>12345</postalCode>
+          <country>Denmark</country>
+          <osw:acl-rule>[.. ACCESS RULE FOR THIS FIELD ...]</osw:acl-rule>
+      </addresses>
+    </entry>
+  </publish>
+</iq>
+]]>
+    </example>
+  </section2>
+
+  <section2 topic='Entity adds fields to its profile ' anchor='publisher-add'>
+    <p>An entity can add fields to its profile by sending an IQ-set to the bare domain containing a &lt;add/&gt; element with an &lt;entry/&gt; child. The entry syntax should conform to the <link url='#model'>profile data model</link>. All fields of this new entry will be merged in the existing profile. If fields already exist in the previous profile, the server MUST NOT overwrite and MUST instead return an error. If a user wants to update a field, he MUST use the update method.</p>
+
+    <example caption='Entity add two fields to its profile'><![CDATA[
+<iq type='set'
+    from='hamlet@denmark.lit/snsclient'
+    to='denmark.lit'
+    id='osw2'>
+  <add xmlns="http://onesocialweb.org/protocol/0.1/profile#add">
+    <entry xmlns="http://www.portablecontacts.net/draft-spec.html" 
+           xmlns:osw="http://onesocialweb.org/spec/1.0/">
+      <gender>
+        <value>male</value>
+          <osw:acl-rule>[.. ACCESS RULE FOR THIS FIELD ...]</osw:acl-rule>      
+      </gender>
+      <addresses>
+        <type>work</type>
+          <streetAddress>...</streetAddress>
+          <locality>..</locality>
+          <region></region>
+          <postalCode>12345</postalCode>
+          <country>Denmark</country>
+          <osw:acl-rule>[.. ACCESS RULE FOR THIS FIELD ...]</osw:acl-rule>
+      </addresses>
+    </entry>
+  </add>
+</iq>
+]]>
+    </example>
+
+<p>In this example, Hamlet is adding a gender field and a work address. Since address allows for multiple values differing by type, the server accepts the request and proceed to the update.</p>
+
+  </section2>
+
+  <section2 topic='Entity updates fields from its profile ' anchor='publisher-update'>
+    <p>An entity can update fields to its profile by sending an IQ-set to the bare domain containing a &lt;update/&gt; element with an &lt;entry/&gt; child. The entry syntax should conform to the <link url='#model'>profile data model</link>. All fields of this new entry will overwrite fields from the existing profile. If a field does not yest exist in the previous profile, it will be created. [TODO: Yes ? Or should we raise an error ?]</p>
+
+    <p>[TODO: Not clear how this would work with multiple values fields like &lt;movies/&gt;. We may need to introduce the notion of field id, which is currently missing also in OpenSocial and PortableContacts.</p>
+
+    <example caption='Entity update a field from its profile'><![CDATA[
+<iq type='set'
+    from='hamlet@denmark.lit/snsclient'
+    to='denmark.lit'
+    id='osw3'>
+  <update xmlns="http://onesocialweb.org/protocol/0.1/profile#add">
+    <entry xmlns="http://www.portablecontacts.net/draft-spec.html" 
+           xmlns:osw="http://onesocialweb.org/spec/1.0/">
+      <birthday>
+        <value>19/02/1654</value>
+      </birthday>
+    </entry>
+  </update>
+</iq>
+]]>
+    </example>
+
+  </section2>
+
+  <section2 topic='Entity removes fields from its profile ' anchor='publisher-remove'>
+    <p>An entity can delete fields from its profile by sending an IQ-set to the bare domain containing a &lt;update/&gt; element with an &lt;entry/&gt; child. The entry syntax should conform to the <link url='#model'>profile data model</link>. All fields in this entry will be deleted from the existing profile. [Note: Due to lack of field ID, this will be problematic for multiple value fields, need to iterate on this. The fundamental question is: has a user multiple address fields or one addresses field with multiple values... This should be raised to Portable Contacts folks.]</p>
+
+    <example caption='Entity delete a field from its profile'><![CDATA[
+<iq type='set'
+    from='hamlet@denmark.lit/snsclient'
+    to='denmark.lit'
+    id='osw4'>
+  <delete xmlns="http://onesocialweb.org/protocol/0.1/profile#add">
+    <entry xmlns="http://www.portablecontacts.net/draft-spec.html" 
+           xmlns:osw="http://onesocialweb.org/spec/1.0/">
+      <birthday />
+    </entry>
+  </delete>
+</iq>
+]]>
+    </example>
+
+  </section2>
+  
+</section1>
+
+<section1 topic='Reader Use Cases' anchor='reader'>
+  <p>This section defines the use cases for and protocols to be used by any entity that wishes to query the profile of another entity.</p>
+  <p>In all of the following use cases, the server MUST comply with the privacy settings attached to the fields populating the profile of the target entity.</p>
+
+  <section2 topic='Query Profile' anchor='reader-query'>
+
+    <p>An entity can query the profile of another entity by sending an IQ-get to the bare JID of the target entity containing  a &lt;query/&gt; element. The server replies to this request with a profile containing all the profile fields that the requesting entity is allowed to see.</p>
+
+    <p>It should be noted that:</p>
+    <ul>
+      <li>A valid profile document should always be returned, even if no fields are visible.</li>
+      <li>A profile MUST always contain an &lt;id/&gt; field</li>
+      <li>&lt;acl-rule/&gt; fields MUST must be stripped of a profile when it is requested by another entity than the owner</li>
+    </ul>
+
+    <p>In the following example, &lt;romeo@montague.lit&gt; wants to check the profile of &lt;juliet@capulet.lit&gt; to better understand who is this girl that everyone is talking about. He opens his prefered social web client and types in Juliet's identifier in the navigation box. The client query for the profile with the following request:</p>
+
+   <example caption='User Query for Profile'><![CDATA[
+<iq type='get'
+    from='romeo@montague.lit/orchard'
+    to='juliet@capulet.lit'
+    id='osw2'>
+  <query xmlns="http://onesocialweb.org/protocol/0.1/profile#query">
+  </query>
+</iq>
+]]></example>
+
+    <p>To which Juliet's server replies with a profile containing all fields that Romeo is allowed to see:</p>
+
+   <example caption='Server Reply to Profile Query'><![CDATA[
+<iq type='result'
+    from='juliet@capulet.lit' 
+    to='romeo@montague.lit/orchard'>
+  <query xmlns="http://onesocialweb.org/protocol/0.1/profile#query">
+    <entry xmlns="http://www.portablecontacts.net/draft-spec.html">
+      <id>julie@capulet.lit</id>
+      <gender>
+        <value>female</value>
+      </gender>
+      <drinker><value>party only</value></drinker>
+      <smoker><value>heavy</value></drinker>
+      <relationshipStatus><value>single</value></relationshipStatus>	
+      <lookingFor><value>men</value></lookingFor>
+    </entry>
+  </query>
+</iq>
+]]></example>
+  </section2>
+
+</section1>
+
+<section1 topic='Application Use Cases' anchor='application'>
+  <p>This section defines the use cases for and protocols to be used by any third party application thar wishes to add/modify/delete fields of a profile on behalf of a user. For example, a user could authorize the &lt;robot@geolocator.com/&gt; entity to update its &lt;location/&gt; profile field.</p>
+  <p>//TODOD: I wonder if this should be here, or managed at a more higher level (a broad delegation framework ?). Well.. we are far from tackling these problems anyway.</p>
+</section1>
+
+<section1 topic='Data Model' anchor='model'>
+    <p>We have based our work on the <link url="http://portablecontacts.net/">Portable Contacts</link> standard as data model for user profile. In this section, we precise some implementation details and extensions.</p>
+
+    <section2 topic='Implementation details'>
+      <p>In the original Portable Contacts specification, a single value field like &lt;birthday/&gt; is expressed in the form &lt;field&gt;value&lt;field/&gt;. This is simple, but prevents us to easily adds meta-data such as access control to a field. We therefore distanced ourselves from the original spec and instead mandate the &lt;value/&gt; even for single value field.</p>
+
+      <p>This modification andthe use of XML Namespaces enable us to add extensions to fields. We can therefore use this to add &lt;acl-rule/&gt; elements to a field, describing the visibility of the field to other users in the social network.</p>
+    </section2>
+
+    <section2 topic='Extensions'>
+      <section3 topic='Access control'>
+        <p>The access control element used in this specification is described in the &quot;Social Activities&quot; document.</p>
+      </section3>
+    </section2>
+</section1>
+
+<section1 topic='Business Rules' anchor='rules'>
+  <p>OPTIONAL.</p>
+</section1>
+<section1 topic='Implementation Notes' anchor='impl'>
+  <p>OPTIONAL.</p>
+</section1>
+<section1 topic='Accessibility Considerations' anchor='access'>
+  <p>OPTIONAL.</p>
+</section1>
+<section1 topic='Internationalization Considerations' anchor='i18n'>
+  <p>OPTIONAL.</p>
+</section1>
+<section1 topic='Security Considerations' anchor='security'>
+  <p>REQUIRED.</p>
+</section1>
+<section1 topic='IANA Considerations' anchor='iana'>
+  <p>REQUIRED.</p>
+</section1>
+<section1 topic='XMPP Registrar Considerations' anchor='registrar'>
+  <p>REQUIRED.</p>
+</section1>
+<section1 topic='XML Schema' anchor='schema'>
+  <p>REQUIRED for protocol specifications.</p>
+</section1>
+</xep>

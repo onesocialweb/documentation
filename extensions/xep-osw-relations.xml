@@ -1,0 +1,366 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE xep SYSTEM 'xep.dtd' [
+  <!ENTITY % ents SYSTEM 'xep.ent'>
+%ents;
+]>
+<?xml-stylesheet type='text/xsl' href='xep.xsl'?>
+<xep>
+<header>
+  <title>Social Relationships</title>
+  <abstract>This specification defines an XMPP protocol extension for establishing, sharing, confirming and verifying social relationships between users. The protocol enables a user to establish social relationships (e.g. friend, colleague, member) with an other user, to expose (share) his established relationships with other users, to confirm that a relationship declared by another user is true, and to verify that a relationship declared by an user towards another user is indeed true. Each relationship can be assigned a fine grained privacy control: users can assign access control rules on a relationship per relationship basis. This protocol aims at providing a flexible platform for social relationships management in a decentralized social network, thus enabling all social network use cases related to relationships. This extension is part of the OneSocialWeb suite of XMPP extensions. The data format is inspired by the work of the XFN standard.</abstract>
+  <number/>
+  <status/>
+  <type/>
+  <sig/>
+  <approver/>
+  <dependencies>
+    <spec>XMPP Core</spec>
+    <spec>XEP-0030</spec>
+    <spec>XEP-0059</spec>
+  </dependencies>
+  <supersedes />
+  <supersededby/>
+  <shortname>NOT_YET_ASSIGNED</shortname>
+  <author>
+    <firstname>Laurent</firstname>
+    <surname>Eschenauer</surname>
+    <email>laurent.eschenauer@vodafone.com</email>
+    <jid></jid>
+  </author>
+  <revision>
+    <version>0.0.1dev</version>
+    <date>2010-01-25</date>
+    <initials>le</initials>
+    <remark><p>Ongoing development of first draft.</p></remark>
+  </revision>
+</header>
+<section1 topic='Introduction' anchor='intro'>
+  <section2 topic='Overview' anchor='intro-overview'>
+    <p>The XMPP Extension defined in this document is part of a collection of XMPP extensions that forms the OneSocialWeb (OSW) protocol. The purpose of the OneSocialWeb protocol is to enable free, open, and decentralized social applications on the web. In particular, this protocol can be used to turn any XMPP server into a full fledged social network, participating in the OneSocialWeb federation. The suite of extension covers all the usual social networking use cases such as user profiles, relationships, activity streams and third party applications. In addition, it provides support for fine grained access control, realtime notification and collaboration.</p>
+    <p>The Social Relationships extension defined in this document addresses the requirement for establishing, sharing, confirming and verifying social relationships between entities. A relationship has a nature (e.g. friend, colleague, sibling, parent) which can imply properties of symmetry and transitivity. It can be unilateral or bilateral (= confirmed as true by the other party). The data model used in this extension is inspired by the XHTML Friends Networks standard.</p>
+  </section2>
+</section1>
+
+<section1 topic='Requirements' anchor='reqs'>
+  <p>STRONGLY RECOMMENDED.</p>
+</section1>
+
+<section1 topic='Glossary' anchor='glossary'>
+  <p>OPTIONAL.</p>
+</section1>
+
+<section1 topic='Publisher Use Cases' anchor='publisher'>
+  <p>This section defines the use cases for and protocols to be used by any entity that wishes to establish, confirm, modify or delete a relationship with another user.</p>
+
+  <section2 topic='Setup a new relationship' anchor='publisher-setup'>
+    <p>An entity can setup a new relationship with another user by sending an IQ-set to the user bare JID, containing a &lt;setup/&gt; element with a &lt;relationship/&gt; child. The relationship syntax should conform to the <link url='#model'>relationship data model</link>.</p>
+
+    <p>It should be however noted that:</p>
+    <ul>
+      <li>The publisher SHOULD NOT provide a &lt;from/&gt; element in the relationship. The &lt;from/&gt; element MUST be overwritten by the server, in order to guarantee validity (e.g. that the publisher is not trying to spoof another id).</li>
+      <li>Each profile field MUST contain at least one &lt;acl-rule/&gt; element defining the access control for the view action. If no or invalid value is provided, the server MAY provide its own value or MAY reject the request.</li>
+      <li>The &lt;message/&gt; is optional and MUST only be visible to the target user, when asking for confirmation</li>
+    </ul>
+
+    <p>In the following example, &lt;romeo@montague.lit&gt; wants to setup an &quot;engaged&quot; relationship with &lt;juliet@capulet.lit&gt;. Using his prefered social networking client, he visits Juliet's profile and request a new relationship to be setup. He chooses the type, selects the visibility (he select 'Everyone' because he wants to whole world to see this) and when he clicks the Save button, his client sends the following:</p>
+
+    <example caption='Entity setup a new relationship'><![CDATA[
+<iq type='set'
+    from='romeo@montague.lit/orchard'
+    to='juliet@capulet.lit'
+    id='osw1'>
+  <setup xmlns="http://onesocialweb.org/protocol/0.1/relationship#setup">
+    <relationship xmlns="http://onesocialweb.org/spec/1.0/">
+      <to>juliet@capulet.lit</to>
+      <nature>http://onesocialweb.org/spec/1.0/relationship/nature/engaged</nature>
+      <comment>I love this girl so much !</comment>
+      <message>Dear Juliet, let's say to the world that we are engaged !</message>
+      <acl-rule>
+          <acl-action permission="http://onesocialweb.org/spec/1.0/acl/permission/grant">
+            http://onesocialweb.org/spec/1.0/acl/action/view</osw:acl-action>
+          <acl-subject type="http://onesocialweb.org/spec/1.0/acl/subject/everyone"/>
+      </acl-rule>
+    </relationship>
+  </setup>
+</iq>
+]]>
+    </example>
+
+<p>Romeo's server intercept the request, validates it, store this new relationship locally as pending, adds some required fields to the payload, remove the fields that are private to Romeo and forwards it to Juliet's server:</p>
+
+    <example caption='Server stamps and forward setup request'><![CDATA[
+<iq type='set'
+    from='romeo@montague.lit/orchard'
+    to='juliet@capulet.lit'
+    id='osw-1'>
+  <setup xmlns="http://onesocialweb.org/protocol/0.1/relationship#setup">
+    <relationship xmlns="http://onesocialweb.org/spec/1.0/">
+      <id>urn:uuid:0bfb71a4-d8fd-4410-b119-199c3596f296</id>
+      <published>2010-01-13T12:40:51.292Z</published>
+      <from>romeo@montague.lit</from>
+      <to>juliet@capulet.lit</to>
+      <nature>http://onesocialweb.org/spec/1.0/relationship/nature/engaged</nature>
+      <status>http://onesocialweb.org/spec/1.0/relationship/status/requested</status>
+      <message>Dear Juliet, let's say to the world that we are engaged !</message>
+    </relationship>
+  </setup>
+</iq>
+]]>
+    </example>
+
+<p>Juliet's server replies with an IQ-result containing a &lt;setup/&gt; element with a &lt;relationship/&gt; child. The relationship item MUST contain an &lt;id/&gt; element with the same id as the one used in the request. Since the engaged relationship is a symmetrical one, Juliet must confirm it. The result therefore contains a &lt;status/&gt; element of &quot;http://onesocialweb.org/spec/1.0/relationship/status/pending&quot;. In some cases, a relationship may be automatically confirmed (e.g. a &quot;fan&quot; relationship).</p>
+
+    <example caption='Remote server replies with IQ-result'><![CDATA[
+<iq type='result'
+    from='juliet@capulet.lit'
+    to='romeo@montague.lit/orchard'
+    id='osw-1'>
+  <setup xmlns="http://onesocialweb.org/protocol/0.1/relationship#setup">
+    <relationship xmlns="http://onesocialweb.org/spec/1.0/">
+      <id>urn:uuid:0bfb71a4-d8fd-4410-b119-199c3596f296</id>
+      <status>http://onesocialweb.org/spec/1.0/relationship/status/pending</status>
+    </relationship>
+  </setup>
+</iq>
+]]>
+    </example>
+
+<p>Upon receiving the result, Romeo's server updates the relationship status in the local data store and forwards the result to Romeo's client.</p>
+
+    <example caption='Local server forward IQ-result'><![CDATA[
+<iq type='result'
+    from='juliet@capulet.lit'
+    to='romeo@montague.lit/orchard'
+    id='osw-1'>
+  <setup xmlns="http://onesocialweb.org/protocol/0.1/relationship#setup">
+    <relationship xmlns="http://onesocialweb.org/spec/1.0/">
+      <id>urn:uuid:0bfb71a4-d8fd-4410-b119-199c3596f296</id>
+      <status>http://onesocialweb.org/spec/1.0/relationship/status/pending</status>
+    </relationship>
+  </setup>
+</iq>
+]]>
+    </example>
+
+  </section2>
+
+  <section2 topic='Confirm or declining a relationship' anchor='publisher-confirm'>
+
+<p>Once a relationship request has been sent to Juliet, the relationship is in fact added in Juliet's collection of relationships. Therefore, confirming or declining a relationship is simply equivalent to modifying the status of a relationship, and maybe changing the visibility settings.</p>
+
+<p>Following the previous use case, let's assume that Juliet wants to confirm the engaged relationship with Romeo but to make it visible only to her friends. Her client would send the following request to her server:</p>
+
+    <example caption='User confirms a relationship'><![CDATA[
+<iq type='set'
+    from='juliet@capulet.lit/rose'
+    to='romeo@montague.lit'
+    id='osw-2'>
+  <update xmlns="http://onesocialweb.org/protocol/0.1/relationship#update">
+    <relationship xmlns="http://onesocialweb.org/spec/1.0/">
+      <id>urn:uuid:0bfb71a4-d8fd-4410-b119-199c3596f296</id>
+      <status>http://onesocialweb.org/spec/1.0/relationship/status/confirmed</status>
+      <acl-rule>
+          <acl-action permission="http://onesocialweb.org/spec/1.0/acl/permission/grant">
+            http://onesocialweb.org/spec/1.0/acl/action/view</acl-action>
+          <acl-subject type="http://onesocialweb.org/spec/1.0/acl/subject/group">
+            Friends
+          </acl-subject>
+      </acl-rule>
+    </relationship>
+  </update>
+</iq>
+]]>
+    </example>
+
+<p>Juliet's server forwards the update request to Romeo's server, making sure to first filter any private fields like the ACL ones.</p>
+
+    <example caption='Local server forwards update request to remote server'><![CDATA[
+<iq type='set'
+    from='juliet@capulet.lit/rose'
+    to='romeo@montague.lit'
+    id='osw-2'>
+  <update xmlns="http://onesocialweb.org/protocol/0.1/relationship#update">
+    <relationship xmlns="http://onesocialweb.org/spec/1.0/">
+      <id>urn:uuid:0bfb71a4-d8fd-4410-b119-199c3596f296</id>
+      <status>http://onesocialweb.org/spec/1.0/relationship/status/confirmed</status>
+    </relationship>
+  </update>
+</iq>
+]]>
+    </example>
+
+<p>Romeo's server replies with an IQ-result ontaining an &lt;update/&gt; element with a &lt;relationship/&gt; child. The relationship item MUST contain an &lt;id/&gt; and a &lt;status/&gt; element reproducing the one in the original request.</p>
+
+    <example caption='Remote server answers with an IQ-result'><![CDATA[
+<iq type='result'
+    from='romeo@montague.lit'
+    to='juliet@capulet.lit/rose'
+    id='osw-2'>
+  <update xmlns="http://onesocialweb.org/protocol/0.1/relationship#update">
+    <relationship xmlns="http://onesocialweb.org/spec/1.0/">
+      <id>urn:uuid:0bfb71a4-d8fd-4410-b119-199c3596f296</id>
+      <status>http://onesocialweb.org/spec/1.0/relationship/status/confirmed</status>
+    </relationship>
+  </update>
+</iq>
+]]>
+    </example>
+
+  </section2>
+  
+  <section2 topic='Ignore a relationship' anchor='publisher-ignore'>
+  <p>In order to ignore a relationship, a user should simply ignore the request. The status of the relationship will stay marked as pending on both ends.</p>
+  </section2>
+
+  <section2 topic='Modify private element of a relationship' anchor='publisher-modify'>
+    
+    <p>A user can always update the private elements of a relationship (&lt;comment/&gt; and &lt;acl-rule/&gt;) by sending an IQ-set to his server containing an &lt;update/&gt; element with a &lt;relationship/&gt; child. The relationship item MUST contain the &lt;id/&gt; of the relationship that has to be edited.</p>
+
+    <p>In the following example, Juliet decides to change the visibility of her relationship with Romeo:</p>
+
+    <example caption='User update a relationship'><![CDATA[
+<iq type='set'
+    from='juliet@capulet.lit/rose'
+    to='capulet.lit'
+    id='osw-3'>
+  <update xmlns="http://onesocialweb.org/protocol/0.1/relationship#update">
+    <relationship xmlns="http://onesocialweb.org/spec/1.0/">
+      <id>urn:uuid:0bfb71a4-d8fd-4410-b119-199c3596f296</id>
+      <status>http://onesocialweb.org/spec/1.0/relationship/status/confirmed</status>
+      <acl-rule>
+          <acl-action permission="http://onesocialweb.org/spec/1.0/acl/permission/grant">
+            http://onesocialweb.org/spec/1.0/acl/action/view</acl-action>
+          <acl-subject type="http://onesocialweb.org/spec/1.0/acl/subject/group">
+            Friends
+          </acl-subject>
+      </acl-rule>
+    </relationship>
+  </update>
+</iq>
+]]>
+    </example>
+
+  </section2>
+
+  <section2 topic='Modify status of a relationship' anchor='publisher-reconfirm'>
+    <p>Updating the status of a relationship is equivalent to (re)confirming the relationship with a different status.</p>
+  </section2>
+
+  <section2 topic='Delete a relationship' anchor='publisher-delete'>
+    <p>Not yet implemented</p>
+  </section2>
+  
+</section1>
+
+<section1 topic='Reader Use Cases' anchor='reader'>
+  <p>This section defines the use cases for and protocols to be used by any entity that wishes to query the relationships of another entity.</p>
+  <p>In all of the following use cases, the server MUST comply with the privacy settings attached to any relationship of the target entity before exposing it to another user.</p>
+
+  <section2 topic='Query Relationships' anchor='reader-query'>
+
+    <p>An entity can query the relationships of another entity by sending an IQ-get to the bare JID of the target entity containing  a &lt;query/&gt; element. The server replies to this request with a list of relationships that the requesting entity is allowed to see.</p>
+
+    <p>It should be noted that:</p>
+    <ul>
+      <li>&lt;acl-rule/&gt; and &lt;comment/&gt; fields MUST must be stripped of each relationship when it is requested by another entity than the owner</li>
+      <li>If the numbers of relationships is large (//todo how large ?) the answer SHOULD comply with the Result Management specification</li>
+    </ul>
+
+    <p>In the following example, &lt;romeo@montague.lit&gt; wants to check the relationships of &lt;juliet@capulet.lit&gt;, just because he can be quite a jealous guy :-) He opens his preferred social networking client and type in Juliet's identifier in the navigation box. The client query for the relationships with the following request:</p>
+
+   <example caption='User Query for Relationships'><![CDATA[
+<iq type='get'
+    from='romeo@montague.lit/orchard'
+    to='juliet@capulet.lit'
+    id='osw2'>
+  <query xmlns="http://onesocialweb.org/protocol/0.1/relationships#query">
+  </query>
+</iq>
+]]></example>
+
+    <p>To which Juliet's server replies with a list of existing relationships that Romeo is allowed to see:</p>
+
+   <example caption='Server Reply to Relationships Query'><![CDATA[
+<iq type='result'
+    from='juliet@capulet.lit' 
+    to='romeo@montague.lit/orchard'>
+  <query xmlns="http://onesocialweb.org/protocol/0.1/relationships#query">
+    <relationship xmlns="http://onesocialweb.org/spec/1.0/relationship">
+      <id>urn:uuid:0bfb71a4-d8fd-4410-b119-199c3596f296</id>
+      <published>2010-01-13T12:40:51.292Z</published>
+      <from>romeo@montague.lit</from>
+      <to>juliet@capulet.lit</to>
+      <nature>http://onesocialweb.org/spec/1.0/relationship/nature/engaged</nature>
+      <status>http://onesocialweb.org/spec/1.0/relationship/status/confirmed</status>
+    </relationship>
+    <relationship xmlns="http://onesocialweb.org/spec/1.0/relationship">
+      <id>urn:uuid:042D7D22-0760-11DF-97DC-8BA455D89593</id>
+      <published>2010-01-16T15:23:10.252Z</published>
+      <from>juliet@capulet.lit</from>
+      <to>camilia@italy.lit</to>
+      <nature>http://onesocialweb.org/spec/1.0/relationship/nature/friend</nature>
+      <status>http://onesocialweb.org/spec/1.0/relationship/status/confirmed</status>
+    </relationship>
+  </query>
+</iq>
+]]></example>
+  </section2>
+
+  <section2 topic='Verify a relationship' anchor='reader-verify'>
+    <p>Because of the decentralized nature of the social web, a user could always claim that he has a confirmed relationship of a kind with another user. This use case enables any third party to verify if this claim is true, while not being able to abuse this protocol to extract information from a user</p>
+    <p>Not yet implemented</p>
+</section2>
+
+</section1>
+
+<section1 topic='Application Use Cases' anchor='application'>
+  <p>This section defines the use cases for and protocols to be used by any third party application thar wishes to add/modify/delete relationships on behalf of a user. For example, a user could authorize the &lt;robot@gmail.com/&gt; entity to automaticaly add a relationship when a new email contact is added by the user.</p>
+  <p>//TODOD: I wonder if this should be here, or managed at a more higher level (a broad delegation framework ?). Well.. we are far from tackling these problems anyway.</p>
+</section1>
+
+<section1 topic='Data Model' anchor='model'>
+    <p>We have not found any data model for relationships that would fit our requirements, and have therefore opted to define our own, based on the thinking behind the <link url="http://gmpg.org/xfn/">XHTML Friends Network</link>. We would be happy to review any proposal and align with existing standards meeting our requirements.</p>
+
+    <section2 topic='Schema'>
+    <p>A relationship is defined as a link between two users (identified by their bare JID). It is identified by a Globaly Unique Identified. It is characterized by a nature. It can be mutually verified, meaning that the other end of the relationship confirms this relationship as being true.</p>
+
+    <ul>
+      <li>A relation is defined inside a &lt;relationship/&gt; element, defined in the &quot;http://onesocialweb.org/spec/1.0/&quot; XML Namespace.</li>
+      <li>&lt;id/&gt;: element uniquely identified a relationship. If two users have agreed on a relationship, they should use the same identifier when refering to that relationship.</li>
+      <li>&lt;from/&gt;: specicifies whose the initiator of the relationship setup. This value does not changed depending on the end (the from stays the same whoever you ask about the relationship).</li>
+      <li>&lt;to/&gt;: specicifies the target of the relationship setup. This value does not changed depending on the end (the to stays the same whoever you ask about the relationship).</li>
+      <li>&lt;nature/&gt;: at least one nature MUST be specified. It MUST be one of the predefined natures. Additional, more specific, nature can be provided. They SHOULD however be coherent (e.g. a family relationship and a sibbling one). This enable third party services to provide specific semantics while still being readable by generic services.</li>
+      <li>&lt;status/&gt;: describes the status of the relationship setup. It MUST be one of the predefined value.</li>
+      <li>&lt;comment/&gt;: an optional comment entered by the requestor, for his own use. This value MUST NOT be made visible to others.</li>
+      <li>&lt;message/&gt;: an optional message for the target giving more details on the relationship setup. This value MUST NOT be made to other users than the requestor and the target.</li>
+      <li>&lt;acl-rule/&gt;: one or more access control rule defining who can see/verify that this relationship is defined.</li>
+    </ul>
+    </section2>
+
+</section1>
+
+<section1 topic='Business Rules' anchor='rules'>
+  <p>OPTIONAL.</p>
+</section1>
+<section1 topic='Implementation Notes' anchor='impl'>
+  <p>OPTIONAL.</p>
+</section1>
+<section1 topic='Accessibility Considerations' anchor='access'>
+  <p>OPTIONAL.</p>
+</section1>
+<section1 topic='Internationalization Considerations' anchor='i18n'>
+  <p>OPTIONAL.</p>
+</section1>
+<section1 topic='Security Considerations' anchor='security'>
+  <p>REQUIRED.</p>
+</section1>
+<section1 topic='IANA Considerations' anchor='iana'>
+  <p>REQUIRED.</p>
+</section1>
+<section1 topic='XMPP Registrar Considerations' anchor='registrar'>
+  <p>REQUIRED.</p>
+</section1>
+<section1 topic='XML Schema' anchor='schema'>
+  <p>REQUIRED for protocol specifications.</p>
+</section1>
+</xep>

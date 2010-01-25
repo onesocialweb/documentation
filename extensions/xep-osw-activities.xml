@@ -1,0 +1,331 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE xep SYSTEM 'xep.dtd' [
+  <!ENTITY % ents SYSTEM 'xep.ent'>
+%ents;
+]>
+<?xml-stylesheet type='text/xsl' href='xep.xsl'?>
+<xep>
+<header>
+  <title>Social Activities</title>
+  <abstract>This specification defines an XMPP protocol extension for sharing, archiving and retrieving generic social networking activities. It supports simple activities like blogging, microblogging, bookmarking, sharing pictures, etc. and also supports custom activities. The activity publishing supports fine grained privacy control: users can assign access control rules on a per activity basis. This protocol aims at providing a flexible platform for social activities management in a decentralized social network, thus enabling all social network use cases related to sharing of activities. This extension is part of the OneSocialWeb suite of XMPP extensions. The data format for Activities closely follows the Activitystrea.ms standard with a few additions/clarifications. It is our intention to align further with the work of Activitystrea.ms</abstract>
+  <number/>
+  <status/>
+  <type/>
+  <sig/>
+  <approver/>
+  <dependencies>
+    <spec>XMPP Core</spec>
+    <spec>XEP-0030</spec>
+    <spec>XEP-0059</spec>
+  </dependencies>
+  <supersedes/>
+  <supersededby/>
+  <shortname/>
+  <author>
+    <firstname>Laurent</firstname>
+    <surname>Eschenauer</surname>
+    <email>laurent.eschenauer@vodafone.com</email>
+    <jid></jid>
+  </author>
+  <revision>
+    <version>0.0.1dev</version>
+    <date>2010-01-25</date>
+    <initials>le</initials>
+    <remark><p>Ongoing development of first draft.</p></remark>
+  </revision>
+</header>
+<section1 topic='Introduction' anchor='intro'>
+
+  <section2 topic='Overview' anchor='intro-overview'>
+
+    <p>The XMPP Extension defined in this document is part of a collection of XMPP extensions that forms the OneSocialWeb (OSW) protocol. The purpose of the OneSocialWeb protocol is to enable free, open, and decentralized social applications on the web. In particular, this protocol can be used to turn any XMPP server into a full fledged social network, participating in the OneSocialWeb federation. The suite of extension covers all the usual social networking use cases such as user profiles, relationships, activity streams and third party applications. In addition, it provides support for fine grained access control, realtime notification and collaboration.</p>
+
+    <p>The Activity Stream extension defined in this document addresses the requirement for sharing, archiving and retrieving generic activities performed by a user in social applications. It leverages the Activitystrea.ms standard as a data model for activities, and provides some extensions to address specific needs such as fine grained privacy.</p>
+
+  </section2>
+
+</section1>
+
+<section1 topic='Requirements' anchor='reqs'>
+  <p>STRONGLY RECOMMENDED.</p>
+</section1>
+
+<section1 topic='Glossary' anchor='glossary'>
+  <p>OPTIONAL.</p>
+</section1>
+
+<section1 topic='Publisher Use Cases' anchor='publisher'>
+
+  <p>This section defines the use cases for and protocols to be used by any entity that wishes to manipulate its own activities, stored at its server. In particular to publish, update or delete activities.</p>
+
+  <section2 topic='Publish New Activity' anchor='publisher-publish'>
+
+    <p>An entity can publish an activity to its server by sending an IQ-set to the bare domain containing a &lt;publish/&gt; element with an &lt;entry/&gt; child. The entry syntax should conform to the <link url='#model'>activity data model</link>.</p>
+
+    <p>It should be however noted that:</p>
+
+    <ul>
+      <li>The publisher MUST NOT provide the &lt;published/&gt;, &lt;id/&gt; and &lt;author/&gt; elements with the activity. These elements MUST be overwritten by the server, in order to guarantee validity (e.g. that the publisher is not spoofing the author element).</li>
+      <li>The activity MUST contain at least one &lt;acl-rule/&gt; element defining the access control for the view action. If no or invalid value is provided, the server MAY provide its own value or reject the activity.</li>
+    </ul>
+
+    <p>In the following example, &lt;hamlet@denmark.lit&gt; wants to share with his community his latest thoughts on life via a standard social networking "status update" (e.g. tweet). He uses his favorite social web client and publishes the following:</p>
+
+    <example caption='User Publishes a New Status Updated Activity'><![CDATA[
+<iq type='set'
+    from='hamlet@denmark.lit/snsclient'
+    to='denmark.lit'
+    id='osw1'>
+  <publish xmlns="http://onesocialweb.org/protocol/0.1/activities#publish">
+    <entry xmlns="http://www.w3.org/2005/Atom" 
+           xmlns:activity="http://activitystrea.ms/spec/1.0/" 
+           xmlns:osw="http://onesocialweb.org/spec/1.0/">
+      <title>to be or not to be ?</title>
+      <activity:verb>http://activitystrea.ms/schema/1.0/post</activity:verb>
+      <activity:object>
+        <activity:object-type>http://onesocialweb.org/spec/1.0/object/status</activity:object-type>
+        <content type="text/plain">to be or not to be ?</content>
+      </activity:object>
+      <osw:acl-rule>
+        <osw:acl-action permission="http://onesocialweb.org/spec/1.0/acl/permission/grant">
+          http://onesocialweb.org/spec/1.0/acl/action/view
+        </osw:acl-action>
+        <osw:acl-subject type="http://onesocialweb.org/spec/1.0/acl/subject/everyone"/>
+      </osw:acl-rule>
+    </entry>
+  </publish>
+</iq>
+    ]]></example>
+
+    <p>In this other example, &lt;hamlet@denmark.lit&gt; shares a picture with users with who he has a 'Family' relationship.<note>The concept of relationships, and how they are managed, is described in Social Relationships (//TODO How do I link to another spec ?)</note></p>
+
+    <example caption='User shares a picture with members of his family'><![CDATA[
+<iq type='set'
+    from='hamlet@denmark.lit/snsclient'
+    to='denmark.lit'
+    id='osw2'>
+  <publish xmlns="http://onesocialweb.org/protocol/0.1/activities#publish">
+    <entry xmlns="http://www.w3.org/2005/Atom" 
+           xmlns:activity="http://activitystrea.ms/spec/1.0/" 
+           xmlns:osw="http://onesocialweb.org/spec/1.0/">
+      <title>sunrise in Denmark</title>
+      <activity:verb>http://activitystrea.ms/schema/1.0/post</activity:verb>
+      <activity:object>
+        <activity:object-type>http://onesocialweb.org/spec/1.0/object/picture</activity:object-type>
+        <content type="text/plain">OMG! Just saw the ghost of my father. Check out this picture</content>
+	[... MORE CONTENT OF AN ACTIVITY ENTRY FOR A PICTURE ...]
+      </activity:object>
+      <osw:acl-rule>
+        <osw:acl-action permission="http://onesocialweb.org/spec/1.0/acl/permission/grant">
+          http://onesocialweb.org/spec/1.0/acl/action/view
+        </osw:acl-action>
+        <osw:acl-subject type="http://onesocialweb.org/spec/1.0/acl/subject/relationship">
+          http://onesocialweb.org/spec/1.0/relationship/nature/family
+        </osw:acl-subject>
+      </osw:acl-rule>
+    </entry>
+  </publish>
+</iq>
+    ]]></example>
+
+  </section2>
+
+
+  <section2 topic='Update Activity' anchor='publisher-update'>
+
+    <p>An entity can upate an activity from its server by sending an IQ-set to the bare domain containing an &lt;update/&gt; element with an &lt;entry/&gt; child. The entry MUST at least contain an &lt;id/&gt; element with the identifier of the activity to update. The server MUST replace the activities matching the id with the content provided in the update requet.</p>
+
+    <example caption='User updates an activity'><![CDATA[
+<iq type='set'
+    from='hamlet@denmark.lit/snsclient'
+    to='denmark.lit'
+    id='osw4'>
+  <publish xmlns="http://onesocialweb.org/protocol/0.1/activities#publish">
+    <entry xmlns="http://www.w3.org/2005/Atom" 
+           xmlns:activity="http://activitystrea.ms/spec/1.0/" 
+           xmlns:osw="http://onesocialweb.org/spec/1.0/">
+      <title>to be or not to be ? That is the question !</title>
+      <id>urn:uuid:0bfb71a4-d8fd-4410-b119-199c3596f296</id>
+      <activity:verb>http://activitystrea.ms/schema/1.0/post</activity:verb>
+      <activity:object>
+        <activity:object-type>http://onesocialweb.org/spec/1.0/object/status</activity:object-type>
+        <content type="text/plain">to be or not to be ? That is the question !</content>
+      </activity:object>
+      <osw:acl-rule>
+        <osw:acl-action permission="http://onesocialweb.org/spec/1.0/acl/permission/grant">
+          http://onesocialweb.org/spec/1.0/acl/action/view
+        </osw:acl-action>
+        <osw:acl-subject type="http://onesocialweb.org/spec/1.0/acl/subject/everyone"/>
+      </osw:acl-rule>
+    </entry>
+  </publish>
+</iq>
+    ]]></example>
+
+  </section2>
+
+  <section2 topic='Delete Activity' anchor='publisher-delete'>
+
+    <p>An entity can delete an activity from its server by sending an IQ-set to the bare domain containing a &lt;delete/&gt; element with an &lt;entry/&gt; child. The entry MUST at least contain an &lt;id/&gt; element with the identifier of the activity to delete.</p>
+
+    <example caption='User delete an activity'><![CDATA[
+<iq type='set'
+    from='hamlet@denmark.lit/snsclient'
+    to='denmark.lit'
+    id='osw3'>
+  <delete xmlns="http://onesocialweb.org/protocol/0.1/activities#delete">
+    <entry xmlns="http://www.w3.org/2005/Atom">
+      <id>urn:uuid:0bfb71a4-d8fd-4410-b119-199c3596f296</id>
+    </entry>
+  </delete>
+</iq>
+    ]]></example>
+
+  </section2>
+
+</section1>
+
+<section1 topic='Reader Use Cases' anchor='reader'>
+
+  <p>This section defines the use cases for and protocols to be used by any entity that wishes to query the activities published by another entity. In particular, an entity can paginate through the archived activities, filter them, or search them.</p>
+ 
+ <p>In all of the following use cases, the server MUST comply with the privacy settings attached to the activity.</p>
+
+  <section2 topic='Query Latest Activities' anchor='reader-query'>
+
+    <p>An entity can query the for the latest activities of another entity by sending an IQ-get to the bare JID of the target entity containing  a &lt;query/&gt; element. The server replies to this request with the latest activities. The number of activities returned SHOULD be bounded (//TODO: Should we specify a limit?). If more activities are available, the answer SHOULD comply with &xep0059;.</p>
+
+    <p>As an example, we have the entity, &lt;othello@venice.lit&gt; wondering what &lt;hamlet@denmark.lit&gt; latest thoughts are and deciding to look at Hamlet's activities using his favorite social networking client. The client will therefore send the following request:</p>
+
+    <example caption='User Request Latest Activities of Another User'><![CDATA[
+<iq type='get'
+    from='othello@venice.lit/snsclient'
+    to='hamlet@denmark.lit'
+    id='osw2'>
+  <query xmlns="http://onesocialweb.org/protocol/0.1/activities#query"></query>
+</iq>
+    ]]></example>
+
+    <p>To which Hamlet's server replies with all the activities published by Hamlet and which can be seen by Othello. Since Hamlet has published only two activities that can be seen by Othello, there is no need to use Result Management.</p>
+
+    <example caption='Service Reply With Latest Activities'><![CDATA[
+<iq type="result" 
+    from='hamlet@denmark.lit'
+    to='othello@venice.lit/snsclient'
+    id='osw2'>
+  <query xmlns="http://onesocialweb.org/protocol/0.1/activities#query">
+    <entry xmlns="http://www.w3.org/2005/Atom"> 
+      <published>2010-01-13T12:40:51.292Z</published>
+      <id>urn:uuid:0bfb71a4-d8fd-4410-b119-199c3596f296</id>
+      <title>to be or not to be ?</title>
+      [ ... ENTRY DETAILS ... ]
+    </entry>
+    <entry xmlns="http://www.w3.org/2005/Atom">
+      <id>urn:uuid:c9b8df4a-440a-40ef-86ac-0f6dcf68525e</id>
+      <published>2009-12-16T12:06:13.000Z</published>
+      <title>What is the question ?</title>
+      [... ENTRY DETAILS ...]
+    </entry>
+  </query>
+</iq>
+    ]]></example>
+
+  </section2>
+
+  <section2 topic='Paginate Through Activities' anchor='reader-paginate'>
+    <p>[TODO: Simple example using result set management]</p>
+  </section2>
+
+  <section2 topic='Filter Activities' anchor='reader-filter'>
+    <p>[TODO: How far do we want to go ? Basic filtering by activity verb and object type ? Allow for more specific rules supporting comparators etc... almost replicating a full blown SQL ? We need to strike a balance between filtering on server and in the client.]</p>
+  </section2>
+
+  <section2 topic='Search Activities' anchor='reader-search'>
+    <p>[TODO: Similar and linked to previous item: how far to go ?]</p>
+  </section2>
+
+  <section2 topic='Combination of Search, Filter and Paginate' anchor='reader-combo'>
+    <p>[TODO: Depends on decision for previous points</p>
+  </section2>
+
+</section1>
+
+<section1 topic='Application Use Cases' anchor='application'>
+
+  <p>This section defines the use cases for and protocols to be used by any third party application thar wishes to publish activities on behalf of a user. For example, a user could authorize the &lt;app@bookmarker.com/&gt; entity to post activities of type post with an object of type bookmark, on his behalf.</p>
+
+  <p>[TODO: I wonder if this should be here, or managed at a more higher level (a broad delegation framework ?). Well.. we are far from tackling these problems anyway].</p>
+
+</section1>
+
+<section1 topic='Data Model' anchor='model'>
+    <p>We have chosen to use the <link url="http://activitystrea.ms">activitystrea.ms</link> standard as data model for activities. In this section, we precise some implementation details and extensions.</p>
+
+    <section2 topic='Implementation details'>
+      <ul>
+        <li>An activity can have multiple objects and we still consider this a single, atomic, activity. This enable use cases like post a status update, together with a picture, and an audio recording made on the spot.</li>
+        <li>[TODO: More stuff ... ]</li>
+      </ul>
+    </section2>
+
+    <section2 topic='Extensions'>
+      <section3 topic='Access control'>
+        <p>This section describes a generic schema for describing access control rules in XML. It is simplistic and should most likely be evolved and merged into the activitystrea.ms standard work.</p>
+        <p>Acccess control is defined through a set of rules, each rule containing a list of actions and permissions associated with a list of subjects. Any user matching at least one subject element of rule is authorized (or denied) the corresponding actions (depending if the permission assigned is Grant or Deny).</p>
+
+    <example caption='Read access to everyone'><![CDATA[
+<acl-rule xmlns="http://onesocialweb.org/spec/1.0/">
+ <acl-action permission="http://onesocialweb.org/spec/1.0/acl/permission/grant">
+   http://onesocialweb.org/spec/1.0/acl/action/view
+ </acl-action>
+ <acl-subject type="http://onesocialweb.org/spec/1.0/acl/subject/everyone"/>
+</acl-rule>
+    ]]></example>
+
+    <example caption='Read access to everyone and update access to hamlet@denmark.lit and othelo@venice.lit'><![CDATA[
+<acl-rule xmlns="http://onesocialweb.org/spec/1.0/">
+ <acl-action permission="http://onesocialweb.org/spec/1.0/acl/permission/grant">
+   http://onesocialweb.org/spec/1.0/acl/action/view
+ </acl-action>
+ <acl-subject type="http://onesocialweb.org/spec/1.0/acl/subject/everyone"/>
+</acl-rule>
+<acl-rule xmlns="http://onesocialweb.org/spec/1.0/">
+  <acl-action permission="http://onesocialweb.org/spec/1.0/acl/permission/grant">
+    http://onesocialweb.org/spec/1.0/acl/action/update
+  </acl-action>
+  <acl-subject type="http://onesocialweb.org/spec/1.0/acl/subject/user">
+    hamlet@denmark.lit
+  </acl-subject>
+  <acl-subject type="http://onesocialweb.org/spec/1.0/acl/subject/user">
+    othelo@venice.lit
+  </acl-subject>
+</acl-rule>
+    ]]></example>
+      </section3>
+    </section2>
+</section1>
+<section1 topic='Business Rules' anchor='rules'>
+  <p>OPTIONAL.</p>
+</section1>
+<section1 topic='Implementation Notes' anchor='impl'>
+  <p>OPTIONAL.</p>
+</section1>
+<section1 topic='Accessibility Considerations' anchor='access'>
+  <p>OPTIONAL.</p>
+</section1>
+<section1 topic='Internationalization Considerations' anchor='i18n'>
+  <p>OPTIONAL.</p>
+</section1>
+<section1 topic='Security Considerations' anchor='security'>
+  <p>REQUIRED.</p>
+</section1>
+<section1 topic='IANA Considerations' anchor='iana'>
+  <p>REQUIRED.</p>
+</section1>
+<section1 topic='XMPP Registrar Considerations' anchor='registrar'>
+  <p>REQUIRED.</p>
+</section1>
+<section1 topic='XML Schema' anchor='schema'>
+  <p>REQUIRED for protocol specifications.</p>
+</section1>
+</xep>
