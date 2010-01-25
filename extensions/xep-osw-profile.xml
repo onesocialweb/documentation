@@ -30,10 +30,10 @@
     <jid></jid>
   </author>
   <revision>
-    <version>0.0.1dev</version>
+    <version>0.0.1</version>
     <date>2010-01-25</date>
     <initials>le</initials>
-    <remark><p>Ongoing development of first draft.</p></remark>
+    <remark><p>First draft.</p></remark>
   </revision>
 </header>
 <section1 topic='Introduction' anchor='intro'>
