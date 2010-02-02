@@ -28,8 +28,8 @@
     <jid></jid>
   </author>
   <revision>
-    <version>0.0.1</version>
-    <date>2010-01-25</date>
+    <version>0.0.2</version>
+    <date>2010-02-02</date>
     <initials>le</initials>
     <remark><p>First draft.</p></remark>
   </revision>
@@ -86,61 +86,46 @@
 ]]>
     </example>
 
-<p>Romeo's server intercept the request, validates it, store this new relationship locally as pending, adds some required fields to the payload, remove the fields that are private to Romeo and forwards it to Juliet's server:</p>
+<p>Romeo's server intercept the request, validates it, store this new relationship locally as pending, adds some required fields to the payload, remove the fields that are private to Romeo and sends a notification to Juliet to inform her of this request.</p>
 
-    <example caption='Server stamps and forward setup request'><![CDATA[
-<iq type='set'
-    from='romeo@montague.lit/orchard'
-    to='juliet@capulet.lit'
-    id='osw-1'>
-  <setup xmlns="http://onesocialweb.org/protocol/0.1/relationship#setup">
-    <relationship xmlns="http://onesocialweb.org/spec/1.0/">
-      <id>urn:uuid:0bfb71a4-d8fd-4410-b119-199c3596f296</id>
-      <published>2010-01-13T12:40:51.292Z</published>
-      <from>romeo@montague.lit</from>
-      <to>juliet@capulet.lit</to>
-      <nature>http://onesocialweb.org/spec/1.0/relationship/nature/engaged</nature>
-      <status>http://onesocialweb.org/spec/1.0/relationship/status/requested</status>
-      <message>Dear Juliet, let's say to the world that we are engaged !</message>
-    </relationship>
-  </setup>
-</iq>
+    <example caption='Server notifies remote user of new relation'><![CDATA[
+<message from="romeo@montague.lit" type="headline" to="juliet@capulet.lit" >
+  <notification xmlns="http://onesocialweb.org/spec/1.0/">
+    <type>http://onesocialweb.org/spec/1.0/notification/relationship</type>
+    <payload>
+      <relationship xmlns="http://onesocialweb.org/spec/1.0/">
+        <id>urn:uuid:0bfb71a4-d8fd-4410-b119-199c3596f296</id>
+        <published>2010-01-13T12:40:51.292Z</published>
+        <from>romeo@montague.lit</from>
+        <to>juliet@capulet.lit</to>
+        <nature>http://onesocialweb.org/spec/1.0/relationship/nature/engaged</nature>
+        <status>http://onesocialweb.org/spec/1.0/relationship/status/requested</status>
+        <message>Dear Juliet, let's say to the world that we are engaged !</message>
+      </relationship>
+    </payload>
+  </notification>
+</message>
 ]]>
     </example>
 
-<p>Juliet's server replies with an IQ-result containing a &lt;setup/&gt; element with a &lt;relationship/&gt; child. The relationship item MUST contain an &lt;id/&gt; element with the same id as the one used in the request. Since the engaged relationship is a symmetrical one, Juliet must confirm it. The result therefore contains a &lt;status/&gt; element of &quot;http://onesocialweb.org/spec/1.0/relationship/status/pending&quot;. In some cases, a relationship may be automatically confirmed (e.g. a &quot;fan&quot; relationship).</p>
+<p>Juliet's server process the request, it can either auto accept it or mark it as pending, waiting for Juliet to actually confirm the notification. When the status of the relationship changes, it sends a notification to Romeo with a &lt;relationship/&gt; child. The relationship item MUST contain an &lt;id/&gt; element with the same id as the one used in the request.</p>
 
-    <example caption='Remote server replies with IQ-result'><![CDATA[
-<iq type='result'
-    from='juliet@capulet.lit'
-    to='romeo@montague.lit/orchard'
-    id='osw-1'>
-  <setup xmlns="http://onesocialweb.org/protocol/0.1/relationship#setup">
-    <relationship xmlns="http://onesocialweb.org/spec/1.0/">
-      <id>urn:uuid:0bfb71a4-d8fd-4410-b119-199c3596f296</id>
-      <status>http://onesocialweb.org/spec/1.0/relationship/status/pending</status>
-    </relationship>
-  </setup>
-</iq>
-]]>
-    </example>
-
-<p>Upon receiving the result, Romeo's server updates the relationship status in the local data store and forwards the result to Romeo's client.</p>
-
-    <example caption='Local server forward IQ-result'><![CDATA[
-<iq type='result'
-    from='juliet@capulet.lit'
-    to='romeo@montague.lit/orchard'
-    id='osw-1'>
-  <setup xmlns="http://onesocialweb.org/protocol/0.1/relationship#setup">
+    <example caption='Server notifies remote user of relation status change'><![CDATA[
+<message from="juliet@capulet.lit" type="headline" to="romeo@montague.lit" >
+  <notification xmlns="http://onesocialweb.org/spec/1.0/">
+    <type>http://onesocialweb.org/spec/1.0/notification/relationship</type>
+    <payload>
     <relationship xmlns="http://onesocialweb.org/spec/1.0/">
       <id>urn:uuid:0bfb71a4-d8fd-4410-b119-199c3596f296</id>
       <status>http://onesocialweb.org/spec/1.0/relationship/status/pending</status>
     </relationship>
-  </setup>
-</iq>
+    </payload>
+  </notification>
+</message>
 ]]>
     </example>
+
+<p>Upon receiving the update notification, Romeo's server updates the relationship status in the local data store and forwards the notification to Romeo's client.</p>
 
   </section2>
 
@@ -172,37 +157,20 @@
 ]]>
     </example>
 
-<p>Juliet's server forwards the update request to Romeo's server, making sure to first filter any private fields like the ACL ones.</p>
+<p>Juliet's server notifies Romeo's server of the change, making sure to first filter any private fields like the ACL ones.</p>
 
-    <example caption='Local server forwards update request to remote server'><![CDATA[
-<iq type='set'
-    from='juliet@capulet.lit/rose'
-    to='romeo@montague.lit'
-    id='osw-2'>
-  <update xmlns="http://onesocialweb.org/protocol/0.1/relationship#update">
-    <relationship xmlns="http://onesocialweb.org/spec/1.0/">
-      <id>urn:uuid:0bfb71a4-d8fd-4410-b119-199c3596f296</id>
-      <status>http://onesocialweb.org/spec/1.0/relationship/status/confirmed</status>
-    </relationship>
-  </update>
-</iq>
-]]>
-    </example>
-
-<p>Romeo's server replies with an IQ-result ontaining an &lt;update/&gt; element with a &lt;relationship/&gt; child. The relationship item MUST contain an &lt;id/&gt; and a &lt;status/&gt; element reproducing the one in the original request.</p>
-
-    <example caption='Remote server answers with an IQ-result'><![CDATA[
-<iq type='result'
-    from='romeo@montague.lit'
-    to='juliet@capulet.lit/rose'
-    id='osw-2'>
-  <update xmlns="http://onesocialweb.org/protocol/0.1/relationship#update">
-    <relationship xmlns="http://onesocialweb.org/spec/1.0/">
-      <id>urn:uuid:0bfb71a4-d8fd-4410-b119-199c3596f296</id>
-      <status>http://onesocialweb.org/spec/1.0/relationship/status/confirmed</status>
-    </relationship>
-  </update>
-</iq>
+    <example caption='Local server notifies remote server of update'><![CDATA[
+<message from="romeo@montague.lit" type="headline" to="juliet@capulet.lit" >
+  <notification xmlns="http://onesocialweb.org/spec/1.0/">
+    <type>http://onesocialweb.org/spec/1.0/notification/relationship</type>
+    <payload>
+      <relationship xmlns="http://onesocialweb.org/spec/1.0/">
+        <id>urn:uuid:0bfb71a4-d8fd-4410-b119-199c3596f296</id>
+        <status>http://onesocialweb.org/spec/1.0/relationship/status/confirmed</status>
+      </relationship>
+    </payload>
+  </notification>
+</message>
 ]]>
     </example>
 
