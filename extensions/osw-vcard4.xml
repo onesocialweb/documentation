@@ -1,0 +1,252 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE xep SYSTEM 'xep.dtd' [
+  <!ENTITY % ents SYSTEM 'xep.ent'>
+%ents;
+]>
+<?xml-stylesheet type='text/xsl' href='xep.xsl'?>
+<xep>
+<header>
+  <title>VCard4 over XMPP</title>
+  <abstract>This specification defines an XMPP protocol extension for sharing vcards between users. The protocol enables users to publish their vcard, share it with other users, and query other users for their vcard. The vcard is supporting a fine grained privacy extension: users can assign access control rules on a field per field basis. In addition, users can delegate write access rights to elements of their vcard to other entities. This protocol aims at providing a flexible platform for social profile management in a decentralized social network, thus enabling all social network use cases related to user profiles. This extension is part of the OneSocialWeb suite of XMPP extensions. The xml data model for vcards is based on the upcoming vcarddav-vcardxml standard (also known as vcard4).</abstract>
+  <number/>
+  <status/>
+  <type/>
+  <sig/>
+  <approver/>
+  <dependencies>
+    <spec>XMPP Core</spec>
+    <spec>XEP-0030</spec>
+    <spec>XEP-0059</spec>
+  </dependencies>
+  <supersedes>
+    <spec>XEP-0054</spec>
+  </supersedes>
+  <supersededby/>
+  <shortname>NOT_YET_ASSIGNED</shortname>
+  <author>
+    <firstname>Laurent</firstname>
+    <surname>Eschenauer</surname>
+    <email>laurent.eschenauer@vodafone.com</email>
+    <jid></jid>
+  </author>
+  <revision>
+    <version>0.2</version>
+    <date>2010-04-09</date>
+    <initials>le</initials>
+    <remark><p>Evolved to vCard4.</p></remark>
+  </revision>
+  <revision>
+    <version>0.1</version>
+    <date>2010-01-25</date>
+    <initials>le</initials>
+    <remark><p>First draft.</p></remark>
+  </revision>
+</header>
+<section1 topic='Introduction' anchor='intro'>
+  <section2 topic='Overview' anchor='intro-overview'>
+    <p>The XMPP Extension defined in this document is part of a collection of XMPP extensions that forms the OneSocialWeb (OSW) protocol. The purpose of the OneSocialWeb protocol is to enable free, open, and decentralized social applications on the web. In particular, this protocol can be used to turn any XMPP server into a full fledged social network, participating in the OneSocialWeb federation. The suite of extension covers all the usual social networking use cases such as user profiles, relationships, activity streams and third party applications. In addition, it provides support for fine grained access control, realtime notification and collaboration.</p>
+    <p>The vCard4 extension defined in this document addresses the requirement for publishing, sharing, and retrieving a user social profile (expressed in vcard). By profile, we mean a document describing an entity with details such as name, birthday, address, avatar picture, but also things like favorite movies, latest location, or in fact any other attribute that a user would like to have in its profile.</p>
+    <p>The data model used in this extension is vcard, and in particular its XML representation, as described in the ongoing IETF work on vcard-xml.<note>The latest draft being available at &lt;<link url='http://tools.ietf.org/html/draft-ietf-vcarddav-vcardxml-02'>http://tools.ietf.org/html/draft-ietf-vcarddav-vcardxml-02</link>&gt;.</note>.</p>
+    <p>This protocol fills similar needs than the VCard (XEP-0054) currently in use by most Jabber/XMPP servers. However it also represents a major evolution by supporting vcard extensions, fine grained privacy, select queries and merging of vcards.</p>
+  </section2>
+</section1>
+
+<section1 topic='Requirements' anchor='reqs'>
+  <p>STRONGLY RECOMMENDED.</p>
+</section1>
+
+<section1 topic='Glossary' anchor='glossary'>
+  <p>OPTIONAL.</p>
+</section1>
+
+<section1 topic='Publisher Use Cases' anchor='publisher'>
+  <p>This section defines the use cases for and protocols to be used by any entity that wishes to manipulate its own profile, stored at its server. In particular to create and update its whole profile or a specific field in its profile.</p>
+
+  <section2 topic='Publish Profile' anchor='publisher-publish'>
+    <p>An entity can publish its profile (and thus overwrite any previously published profile) by sending an IQ-set to the bare domain containing a &lt;publish/&gt; element with a &lt;vcard/&gt; child. The vcard syntax should conform to the <link url='#model'>data model</link>.</p>
+    <p>In the following example, &lt;hamlet@denmark.lit&gt; wants to publish his vcard. It consists of a fullname, the url of his photo, his birthdate, and a short bio. He uses his favorite xmmp client and publishes the following:</p>
+
+    <example caption='User publishes his vcard'><![CDATA[
+<iq type='set'
+    from='hamlet@denmark.lit/client'
+    to='denmark.lit'
+    id='id1'>
+  <publish xmlns="http://onesocialweb.org/spec/1.0/vcard4#publish">
+    <vcard xmlns="urn:ietf:params:xml:ns:vcard-4.0">
+      <fn>
+        <text>Lord Hamlet</text>
+        <acl-rule xmlns="http://onesocialweb.org/spec/1.0/">
+          <acl-action permission="http://onesocialweb.org/spec/1.0/acl/permission/grant">
+            http://onesocialweb.org/spec/1.0/acl/action/view
+          </acl-action>
+          <acl-subject type="http://onesocialweb.org/spec/1.0/acl/subject/everyone"/>
+        </acl-rule>
+      </fn>
+      <photo>
+        <uri>http://denmark.lit/hamlet.jpg</uri>
+      </photo>
+      <note>
+        <text>Philosopher, dreamer, writer...</text>
+      </note>
+    </vcard>
+  </publish>
+</iq>
+]]>
+    </example>
+  </section2>
+
+  <section2 topic='User add or update fields to his vcard' anchor='publisher-merge'>
+    <p>An entity can add or update fields to its vcard by sending an IQ-set to the bare domain containing a &lt;merge/&gt; element with a &lt;vcard/&gt; child. All fields of this new vcard will be merged in the existing one following the vcard merging strategy. <note>Detailed in &lt;<link url='http://tools.ietf.org/html/draft-ietf-vcarddav-vcardrev-09#section-7'>http://tools.ietf.org/html/draft-ietf-vcarddav-vcardrev-09#section-7</link>&gt;</note></p>
+
+    <example caption='Entity add a fields to its profile and updates another one'><![CDATA[
+<iq type='set'
+    from='hamlet@denmark.lit/snsclient'
+    to='denmark.lit'
+    id='osw2'>
+  <merge xmlns="http://onesocialweb.org/spec/1.0/vcard4#merge">
+    <vcard xmlns="urn:ietf:params:xml:ns:vcard-4.0">
+      <fn>
+        <text>THE Lord Hamlet</text>
+        <acl-rule xmlns="http://onesocialweb.org/spec/1.0/">
+          <acl-action permission="http://onesocialweb.org/spec/1.0/acl/permission/grant">
+            http://onesocialweb.org/spec/1.0/acl/action/view
+          </acl-action>
+          <acl-subject type="http://onesocialweb.org/spec/1.0/acl/subject/everyone"/>
+        </acl-rule>
+      </fn>
+      <birthday>
+        <datetime>1850-04-06T21:23:00-07:00</datetime>
+        <acl-rule xmlns="http://onesocialweb.org/spec/1.0/">
+          <acl-action permission="http://onesocialweb.org/spec/1.0/acl/permission/grant">
+            http://onesocialweb.org/spec/1.0/acl/action/view
+          </acl-action>
+          <acl-subject type="http://onesocialweb.org/spec/1.0/acl/subject/group">Friends</acl-subject>
+        </acl-rule>
+      </birthday>
+    </vcard>
+  </merge>
+</iq>
+]]>
+    </example>
+
+<p>In this example, Hamlet is adding a birthday field and updating his full name.</p>
+
+  </section2>
+
+  <section2 topic='Entity removes fields from its vcard ' anchor='publisher-remove'>
+    <p>An entity can delete fields from its profile by sending an IQ-set to the bare domain containing a &lt;remove/&gt; element with a &lt;vcard/&gt; child. Every field, from the submitted vcard, that can be uniquely identified, will be deleted.</p>
+
+    <example caption='Entity remove a field from its profile'><![CDATA[
+<iq type='set'
+    from='hamlet@denmark.lit/snsclient'
+    to='denmark.lit'
+    id='osw4'>
+  <remove xmlns="http://onesocialweb.org/spec/1.0/vcard4#remove">
+    <vcard xmlns="urn:ietf:params:xml:ns:vcard-4.0">
+      <birthday />
+    </vcard>
+  </delete>
+</iq>
+]]>
+    </example>
+
+  </section2>
+  
+</section1>
+
+<section1 topic='Reader Use Cases' anchor='reader'>
+  <p>This section defines the use cases for and protocols to be used by any entity that wishes to query the vcard of another entity. In all of the following use cases, the server MUST comply with the privacy settings attached to the fields populating the vcard of the target entity.</p>
+
+  <section2 topic='Query VCard' anchor='reader-query'>
+
+    <p>An entity can query the vcard of another entity by sending an IQ-get to the bare JID of the target entity containing  a &lt;query/&gt; element. The server replies to this request with a vcard containing all the fields that the requesting entity is allowed to see.</p>
+
+    <p>It should be noted that:</p>
+    <ul>
+      <li>A valid vcard document MUST always be returned, even if no fields are visible.</li>
+      <li>&lt;acl-rule/&gt; extensions MUST must be stripped of a vcard when it is requested by another entity than the owner</li>
+    </ul>
+
+    <p>In the following example, &lt;romeo@montague.lit&gt; wants to check the profile of &lt;juliet@capulet.lit&gt; to better understand who is this girl that everyone is talking about. He opens his prefered xmpp client and types in Juliet's identifier in the navigation box. The client query for the vcard with the following request:</p>
+
+   <example caption='User Query for VCard'><![CDATA[
+<iq type='get'
+    from='romeo@montague.lit/orchard'
+    to='juliet@capulet.lit'
+    id='osw2'>
+  <query xmlns="http://onesocialweb.org/spec/1.0/vcard4#query">
+  </query>
+</iq>
+]]></example>
+
+    <p>To which Juliet's server replies with a vcard containing all fields that Romeo is allowed to see:</p>
+
+   <example caption='Server Reply to vcard Query'><![CDATA[
+<iq type='result'
+    from='juliet@capulet.lit' 
+    to='romeo@montague.lit/orchard'>
+  <query xmlns="http://onesocialweb.org/spec/1.0/vcard4#query>
+    <vcard xmlns="urn:ietf:params:xml:ns:vcard-4.0">
+      <fn>
+        <text>Juliet Capulet</text>
+      </fn>
+      <photo>
+        <uri>http://capulet.lit/juliet.jpg</uri>
+      </photo>
+      <note>
+        <text>Lonely girl,looking for love !</text>
+      </note>
+    </vcard>
+  </query>
+</iq>
+]]></example>
+  </section2>
+
+</section1>
+
+<section1 topic='Application Use Cases' anchor='application'>
+  <p>This section defines the use cases for and protocols to be used by any third party application that wishes to add/modify/delete fields of a vcard on behalf of a user. For example, a user could authorize the &lt;robot@geolocator.com/&gt; entity to update its &lt;location/&gt; field.</p>
+  <p>//TODO: I wonder if this should be here, or managed at a more higher level (a broad delegation framework ?). Well.. we are far from tackling these problems anyway.</p>
+</section1>
+
+<section1 topic='Data Model' anchor='model'>
+    <p>The data model used is vcard xml. We precise here some implementation details and extensions.</p>
+
+    <section2 topic='Implementation details'>
+      <p>To simplify parsing and formating of timestamp, DataTime constructs are always Atom compatible constructs, as specified in &rfc4287;</p>
+
+      <p>We leverage the extensibility of the vcard-xml model to add &lt;acl-rule/&gt; elements to a field, describing the visibility of the field to other users in the network.</p>
+    </section2>
+
+    <section2 topic='Extensions'>
+      <section3 topic='Access control'>
+        <p>The access control element used in this specification is described in a separate document.</p>
+      </section3>
+    </section2>
+</section1>
+
+<section1 topic='Business Rules' anchor='rules'>
+  <p>OPTIONAL.</p>
+</section1>
+<section1 topic='Implementation Notes' anchor='impl'>
+  <p>OPTIONAL.</p>
+</section1>
+<section1 topic='Accessibility Considerations' anchor='access'>
+  <p>OPTIONAL.</p>
+</section1>
+<section1 topic='Internationalization Considerations' anchor='i18n'>
+  <p>OPTIONAL.</p>
+</section1>
+<section1 topic='Security Considerations' anchor='security'>
+  <p>REQUIRED.</p>
+</section1>
+<section1 topic='IANA Considerations' anchor='iana'>
+  <p>REQUIRED.</p>
+</section1>
+<section1 topic='XMPP Registrar Considerations' anchor='registrar'>
+  <p>REQUIRED.</p>
+</section1>
+<section1 topic='XML Schema' anchor='schema'>
+  <p>REQUIRED for protocol specifications.</p>
+</section1>
+</xep>

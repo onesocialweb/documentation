@@ -7,7 +7,7 @@
 <xep>
 <header>
   <title>Social Relationships</title>
-  <abstract>This specification defines an XMPP protocol extension for establishing, sharing, confirming and verifying social relationships between users. The protocol enables a user to establish social relationships (e.g. friend, colleague, member) with an other user, to expose (share) his established relationships with other users, to confirm that a relationship declared by another user is true, and to verify that a relationship declared by an user towards another user is indeed true. Each relationship can be assigned a fine grained privacy control: users can assign access control rules on a relationship per relationship basis. This protocol aims at providing a flexible platform for social relationships management in a decentralized social network, thus enabling all social network use cases related to relationships. This extension is part of the OneSocialWeb suite of XMPP extensions. The data format is inspired by the work of the XFN standard.</abstract>
+  <abstract>This specification defines an XMPP protocol extension for establishing, sharing, confirming and verifying social relationships between users. The protocol enables a user to establish social relationships (e.g. friend, colleague, member) with an other user, to expose (share) his established relationships with other users, to confirm that a relationship declared by another user is true, and to verify that a relationship declared by a user towards another user is indeed true. Each relationship can be assigned a fine grained privacy control: users can assign access control rules on a relationship per relationship basis. This protocol aims at providing a flexible platform for social relationships management in a decentralized social network, thus enabling all social network use cases related to relationships. This extension is part of the OneSocialWeb suite of XMPP extensions. The data format is inspired by the work of the XFN standard.</abstract>
   <number/>
   <status/>
   <type/>
@@ -28,7 +28,13 @@
     <jid></jid>
   </author>
   <revision>
-    <version>0.0.2</version>
+    <version>0.2</version>
+    <date>2010-02-02</date>
+    <initials>le</initials>
+    <remark><p>Minor changes in namespace. This draft has not evolved at all yet.</p></remark>
+  </revision>
+  <revision>
+    <version>0.1</version>
     <date>2010-02-02</date>
     <initials>le</initials>
     <remark><p>First draft.</p></remark>
@@ -62,17 +68,17 @@
       <li>The &lt;message/&gt; is optional and MUST only be visible to the target user, when asking for confirmation</li>
     </ul>
 
-    <p>In the following example, &lt;romeo@montague.lit&gt; wants to setup an &quot;engaged&quot; relationship with &lt;juliet@capulet.lit&gt;. Using his prefered social networking client, he visits Juliet's profile and request a new relationship to be setup. He chooses the type, selects the visibility (he select 'Everyone' because he wants to whole world to see this) and when he clicks the Save button, his client sends the following:</p>
+    <p>In the following example, &lt;romeo@montague.lit&gt; wants to setup an &quot;engaged&quot; relationship with &lt;juliet@capulet.lit&gt;. Using his prefered social networking client, he visits Juliet's profile and requests a new relationship to be setup. He chooses the type, selects the visibility (he select 'Everyone' because he wants to whole world to see this) and when he clicks the Save button, his client sends the following:</p>
 
     <example caption='Entity setup a new relationship'><![CDATA[
 <iq type='set'
     from='romeo@montague.lit/orchard'
     to='juliet@capulet.lit'
     id='osw1'>
-  <setup xmlns="http://onesocialweb.org/protocol/0.1/relationship#setup">
-    <relationship xmlns="http://onesocialweb.org/spec/1.0/">
+  <setup xmlns="http://onesocialweb.org/spec/1.0/relations#setup">
+    <relations xmlns="http://onesocialweb.org/spec/1.0/">
       <to>juliet@capulet.lit</to>
-      <nature>http://onesocialweb.org/spec/1.0/relationship/nature/engaged</nature>
+      <nature>http://onesocialweb.org/spec/1.0/relations/nature/engaged</nature>
       <comment>I love this girl so much !</comment>
       <message>Dear Juliet, let's say to the world that we are engaged !</message>
       <acl-rule>
@@ -80,47 +86,50 @@
             http://onesocialweb.org/spec/1.0/acl/action/view</osw:acl-action>
           <acl-subject type="http://onesocialweb.org/spec/1.0/acl/subject/everyone"/>
       </acl-rule>
-    </relationship>
+    </relations>
   </setup>
 </iq>
 ]]>
     </example>
 
-<p>Romeo's server intercept the request, validates it, store this new relationship locally as pending, adds some required fields to the payload, remove the fields that are private to Romeo and sends a notification to Juliet to inform her of this request.</p>
+<p>Romeo's server intercept the request, validates it, store this new relationship locally as pending, adds some required fields to the payload, removes the fields that are private to Romeo and sends a notification to Juliet to inform her of this request.</p>
 
     <example caption='Server notifies remote user of new relation'><![CDATA[
 <message from="romeo@montague.lit" type="headline" to="juliet@capulet.lit" >
-  <notification xmlns="http://onesocialweb.org/spec/1.0/">
-    <type>http://onesocialweb.org/spec/1.0/notification/relationship</type>
-    <payload>
-      <relationship xmlns="http://onesocialweb.org/spec/1.0/">
-        <id>urn:uuid:0bfb71a4-d8fd-4410-b119-199c3596f296</id>
-        <published>2010-01-13T12:40:51.292Z</published>
-        <from>romeo@montague.lit</from>
-        <to>juliet@capulet.lit</to>
-        <nature>http://onesocialweb.org/spec/1.0/relationship/nature/engaged</nature>
-        <status>http://onesocialweb.org/spec/1.0/relationship/status/requested</status>
-        <message>Dear Juliet, let's say to the world that we are engaged !</message>
-      </relationship>
+  <event xmlns="http://jabber.org/protocol/pubsub#event">
+    <items node='http://onesocialweb.org/spec/1.0/relations'>
+      <item id='id="urn:uuid:0bfb71a4-d8fd-4410-b119-199c3596f296'>
+        <relation xmlns="http://onesocialweb.org/spec/1.0/">
+	  <id>urn:uuid:0bfb71a4-d8fd-4410-b119-199c3596f296</id>
+          <published>2010-01-13T12:40:51.292Z</published>
+          <from>romeo@montague.lit</from>
+          <to>juliet@capulet.lit</to>
+          <nature>http://onesocialweb.org/spec/1.0/relations/nature/engaged</nature>
+          <status>http://onesocialweb.org/spec/1.0/relations/status/requested</status>
+          <message>Dear Juliet, let's say to the world that we are engaged !</message>
+        </relation>
+       </item>
+     </items>
     </payload>
-  </notification>
+  </event>
 </message>
 ]]>
     </example>
 
-<p>Juliet's server process the request, it can either auto accept it or mark it as pending, waiting for Juliet to actually confirm the notification. When the status of the relationship changes, it sends a notification to Romeo with a &lt;relationship/&gt; child. The relationship item MUST contain an &lt;id/&gt; element with the same id as the one used in the request.</p>
+<p>Juliet's server processes the request. It can either auto accept it or mark it as pending, waiting for Juliet to actually confirm the notification. When the status of the relationship changes, it sends a notification to Romeo with a &lt;relationship/&gt; child. The relationship item MUST contain an &lt;id/&gt; element with the same id as the one used in the request.</p>
 
     <example caption='Server notifies remote user of relation status change'><![CDATA[
 <message from="juliet@capulet.lit" type="headline" to="romeo@montague.lit" >
-  <notification xmlns="http://onesocialweb.org/spec/1.0/">
-    <type>http://onesocialweb.org/spec/1.0/notification/relationship</type>
-    <payload>
-    <relationship xmlns="http://onesocialweb.org/spec/1.0/">
-      <id>urn:uuid:0bfb71a4-d8fd-4410-b119-199c3596f296</id>
-      <status>http://onesocialweb.org/spec/1.0/relationship/status/pending</status>
-    </relationship>
-    </payload>
-  </notification>
+  <event xmlns="http://jabber.org/protocol/pubsub#event">
+    <items node='http://onesocialweb.org/spec/1.0/relations'>
+      <item id='id="urn:uuid:0bfb71a4-d8fd-4410-b119-199c3596f296'>
+        <relation xmlns="http://onesocialweb.org/spec/1.0/">
+          <id>urn:uuid:0bfb71a4-d8fd-4410-b119-199c3596f296</id>
+          <status>http://onesocialweb.org/spec/1.0/relations/status/pending</status>
+        </relation>
+      </item>
+    </items>
+  </event>
 </message>
 ]]>
     </example>
@@ -129,7 +138,7 @@
 
   </section2>
 
-  <section2 topic='Confirm or declining a relationship' anchor='publisher-confirm'>
+  <section2 topic='Confirm or decline a relationship' anchor='publisher-confirm'>
 
 <p>Once a relationship request has been sent to Juliet, the relationship is in fact added in Juliet's collection of relationships. Therefore, confirming or declining a relationship is simply equivalent to modifying the status of a relationship, and maybe changing the visibility settings.</p>
 
@@ -140,10 +149,10 @@
     from='juliet@capulet.lit/rose'
     to='romeo@montague.lit'
     id='osw-2'>
-  <update xmlns="http://onesocialweb.org/protocol/0.1/relationship#update">
-    <relationship xmlns="http://onesocialweb.org/spec/1.0/">
+  <update xmlns="http://onesocialweb.org/protocol/0.1/relations#update">
+    <relation xmlns="http://onesocialweb.org/spec/1.0/">
       <id>urn:uuid:0bfb71a4-d8fd-4410-b119-199c3596f296</id>
-      <status>http://onesocialweb.org/spec/1.0/relationship/status/confirmed</status>
+      <status>http://onesocialweb.org/spec/1.0/relations/status/confirmed</status>
       <acl-rule>
           <acl-action permission="http://onesocialweb.org/spec/1.0/acl/permission/grant">
             http://onesocialweb.org/spec/1.0/acl/action/view</acl-action>
@@ -151,7 +160,7 @@
             Friends
           </acl-subject>
       </acl-rule>
-    </relationship>
+    </relation>
   </update>
 </iq>
 ]]>
@@ -161,15 +170,16 @@
 
     <example caption='Local server notifies remote server of update'><![CDATA[
 <message from="romeo@montague.lit" type="headline" to="juliet@capulet.lit" >
-  <notification xmlns="http://onesocialweb.org/spec/1.0/">
-    <type>http://onesocialweb.org/spec/1.0/notification/relationship</type>
-    <payload>
-      <relationship xmlns="http://onesocialweb.org/spec/1.0/">
-        <id>urn:uuid:0bfb71a4-d8fd-4410-b119-199c3596f296</id>
-        <status>http://onesocialweb.org/spec/1.0/relationship/status/confirmed</status>
-      </relationship>
-    </payload>
-  </notification>
+  <event xmlns="http://jabber.org/protocol/pubsub#event">
+    <items node='http://onesocialweb.org/spec/1.0/relations'>
+      <item id='id="urn:uuid:0bfb71a4-d8fd-4410-b119-199c3596f296'>
+        <relation xmlns="http://onesocialweb.org/spec/1.0/">
+          <id>urn:uuid:0bfb71a4-d8fd-4410-b119-199c3596f296</id>
+          <status>http://onesocialweb.org/spec/1.0/relations/status/confirmed</status>
+        </relation>
+      </item>
+    </items>
+  </event>
 </message>
 ]]>
     </example>
@@ -191,10 +201,10 @@
     from='juliet@capulet.lit/rose'
     to='capulet.lit'
     id='osw-3'>
-  <update xmlns="http://onesocialweb.org/protocol/0.1/relationship#update">
-    <relationship xmlns="http://onesocialweb.org/spec/1.0/">
+  <update xmlns="http://onesocialweb.org/protocol/0.1/relations#update">
+    <relation xmlns="http://onesocialweb.org/spec/1.0/">
       <id>urn:uuid:0bfb71a4-d8fd-4410-b119-199c3596f296</id>
-      <status>http://onesocialweb.org/spec/1.0/relationship/status/confirmed</status>
+      <status>http://onesocialweb.org/spec/1.0/relations/status/confirmed</status>
       <acl-rule>
           <acl-action permission="http://onesocialweb.org/spec/1.0/acl/permission/grant">
             http://onesocialweb.org/spec/1.0/acl/action/view</acl-action>
@@ -202,7 +212,7 @@
             Friends
           </acl-subject>
       </acl-rule>
-    </relationship>
+    </relation>
   </update>
 </iq>
 ]]>
@@ -241,7 +251,7 @@
     from='romeo@montague.lit/orchard'
     to='juliet@capulet.lit'
     id='osw2'>
-  <query xmlns="http://onesocialweb.org/protocol/0.1/relationships#query">
+  <query xmlns="http://onesocialweb.org/protocol/0.1/relations#query">
   </query>
 </iq>
 ]]></example>
@@ -252,23 +262,23 @@
 <iq type='result'
     from='juliet@capulet.lit' 
     to='romeo@montague.lit/orchard'>
-  <query xmlns="http://onesocialweb.org/protocol/0.1/relationships#query">
-    <relationship xmlns="http://onesocialweb.org/spec/1.0/relationship">
+  <query xmlns="http://onesocialweb.org/protocol/0.1/relations#query">
+    <relation xmlns="http://onesocialweb.org/spec/1.0/">
       <id>urn:uuid:0bfb71a4-d8fd-4410-b119-199c3596f296</id>
       <published>2010-01-13T12:40:51.292Z</published>
       <from>romeo@montague.lit</from>
       <to>juliet@capulet.lit</to>
-      <nature>http://onesocialweb.org/spec/1.0/relationship/nature/engaged</nature>
-      <status>http://onesocialweb.org/spec/1.0/relationship/status/confirmed</status>
-    </relationship>
-    <relationship xmlns="http://onesocialweb.org/spec/1.0/relationship">
+      <nature>http://onesocialweb.org/spec/1.0/relations/nature/engaged</nature>
+      <status>http://onesocialweb.org/spec/1.0/relations/status/confirmed</status>
+    </relations>
+    <relations xmlns="http://onesocialweb.org/spec/1.0/relations">
       <id>urn:uuid:042D7D22-0760-11DF-97DC-8BA455D89593</id>
       <published>2010-01-16T15:23:10.252Z</published>
       <from>juliet@capulet.lit</from>
       <to>camilia@italy.lit</to>
-      <nature>http://onesocialweb.org/spec/1.0/relationship/nature/friend</nature>
-      <status>http://onesocialweb.org/spec/1.0/relationship/status/confirmed</status>
-    </relationship>
+      <nature>http://onesocialweb.org/spec/1.0/relations/nature/friend</nature>
+      <status>http://onesocialweb.org/spec/1.0/relations/status/confirmed</status>
+    </relation>
   </query>
 </iq>
 ]]></example>
@@ -282,8 +292,8 @@
 </section1>
 
 <section1 topic='Application Use Cases' anchor='application'>
-  <p>This section defines the use cases for and protocols to be used by any third party application thar wishes to add/modify/delete relationships on behalf of a user. For example, a user could authorize the &lt;robot@gmail.com/&gt; entity to automaticaly add a relationship when a new email contact is added by the user.</p>
-  <p>//TODOD: I wonder if this should be here, or managed at a more higher level (a broad delegation framework ?). Well.. we are far from tackling these problems anyway.</p>
+  <p>This section defines the use cases for and protocols to be used by any third party application that wishes to add/modify/delete relationships on behalf of a user. For example, a user could authorize the &lt;robot@gmail.com/&gt; entity to automaticaly add a relationship when a new email contact is added by the user.</p>
+  <p>//TODO: I wonder if this should be here, or managed at a more higher level (a broad delegation framework ?). Well.. we are far from tackling these problems anyway.</p>
 </section1>
 
 <section1 topic='Data Model' anchor='model'>

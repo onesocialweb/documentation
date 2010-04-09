@@ -1,0 +1,142 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE xep SYSTEM 'xep.dtd' [
+  <!ENTITY % ents SYSTEM 'xep.ent'>
+%ents;
+]>
+<?xml-stylesheet type='text/xsl' href='xep.xsl'?>
+<xep>
+<header>
+  <title>PEP Inbox</title>
+  <abstract>This specification defines an XMPP protocol extension for offline storage of PEP events in a user inbox (itself a PEP node) so that clients can easily retrieve offline messages. This extension is part of the OneSocialWeb suite of XMPP extensions. In the future, it could be evolved into a more generic offline PubSub extension, or replaced by an other means to manage offline notifications.</abstract>
+  <number/>
+  <status/>
+  <type/>
+  <sig/>
+  <approver/>
+  <dependencies>
+    <spec>XMPP Core</spec>
+    <spec>XEP-0030</spec>
+    <spec>XEP-0059</spec>
+  </dependencies>
+  <supersedes />
+  <supersededby/>
+  <shortname>NOT_YET_ASSIGNED</shortname>
+  <author>
+    <firstname>Laurent</firstname>
+    <surname>Eschenauer</surname>
+    <email>laurent.eschenauer@vodafone.com</email>
+    <jid></jid>
+  </author>
+  <revision>
+    <version>0.2</version>
+    <date>2010-04-09</date>
+    <initials>le</initials>
+    <remark><p>Evolved to pusbsub.</p></remark>
+  </revision>
+  <revision>
+    <version>0.0.1</version>
+    <date>2010-01-25</date>
+    <initials>le</initials>
+    <remark><p>First draft.</p></remark>
+  </revision>
+</header>
+<section1 topic='Introduction' anchor='intro'>
+  <section2 topic='Overview' anchor='intro-overview'>
+    <p>The XMPP Extension defined in this document is part of a collection of XMPP extensions that forms the OneSocialWeb (OSW) protocol. The purpose of the OneSocialWeb protocol is to enable free, open, and decentralized social applications on the web. In particular, this protocol can be used to turn any XMPP server into a full fledged social network, participating in the OneSocialWeb federation. The suite of extension covers all the usual social networking use cases such as user profiles, relationships, activity streams and third party applications. In addition, it provides support for fine grained access control, realtime notification and collaboration.</p>
+    <p>Onesocialweb is using PubSub event messages as a means to share real-time notification across users and servers. This specification explains how these notifications are stored offline for later use by clients. In the future, it could be evolved into a more generic offline PubSub extension, or replaced by an other means to manage offline notifications.</p>
+  </section2>
+</section1>
+
+<section1 topic='Requirements' anchor='reqs'>
+  <p>STRONGLY RECOMMENDED.</p>
+</section1>
+
+<section1 topic='Glossary' anchor='glossary'>
+  <p>OPTIONAL.</p>
+</section1>
+
+<section1 topic='Reader Use Cases' anchor='reader'>
+  <p>This section defines the use cases for and protocols to be used by any entity that wishes to query its notification inbox. In particular, an entity can paginate through the archived notifications, filter them, search them and delete them.</p>
+
+  <p>The inbox is effectively a PEP node, so these use cases are the same as the PubSub subscriber use cases<note>Detailed in <link url='http://xmpp.org/extensions/xep-0060.html#subscriber-subscribe'>http://xmpp.org/extensions/xep-0060.html#subscriber-subscribe</link>.</note> in a PEP context, towards the user 'http://onesocialweb.org/spec/1.0/inbox' PEP node. We reproduce a simplified version in the next sections as an introduction but in case of doubts, better to refer to the &xep0060; and &xep0163; specifications.</p>
+
+  <section2 topic='Query Latest Notifications' anchor='reader-query'>
+
+    <p>An entity can query the latest events in its inbox by sending an &lt;item /&gt; pubsub request to the inbox PEP node of the user. The server replies to this request with the latest events. If a large number of events is available, the answer SHOULD comply with &xep0059;.</p>
+
+    <p>As an example, we have the entity, &lt;hamlet@denmark.lit&gt; opening its social networking client. The client immediately fetches the inbox of Hamlet so that he can see all the latest activities of his friends. The client sends the following request:</p>
+
+    <example caption='User Request Latest Notifications'><![CDATA[
+<iq type='get'
+    from='hamlet@denmark.lit/snsclient'
+    to='denmark.lit'
+    id='osw2'>
+  <pubsub xmlns='http://jabber.org/protocol/pubsub'>
+    <items node='http://onesocialweb.org/spec/1.0/inbox'/>
+  </pubsub>
+</iq>
+    ]]></example>
+
+    <p>To which Hamlet's server replies with the latest notifications in Hamlet's inbox. There are only two items in Hamlet's inbox: a status update by a friend and a relationship request by Othello.</p>
+
+    <example caption='Service Reply With Latest Notifications'><![CDATA[
+<iq type="result" 
+    from='denmark.lit'
+    to='hamlet@denmark.lit/snsclient'
+    id='osw2'>
+  <pubsub xmlns='http://jabber.org/protocol/pubsub'>
+    <items node='http://onesocialweb.org/spec/1.0/inbox'>
+     <item id='urn:uuid:0bfb71a4-d8fd-4410-b119-199c3596f296'>
+        <entry xmlns="http://www.w3.org/2005/Atom"> 
+          [ ... ENTRY DETAILS ... ]
+        </entry>
+     </item>
+   </items>
+  </pubsub>
+</iq>
+    ]]></example>
+  </section2>
+
+  <section2 topic='Paginate Through Notifications' anchor='reader-paginate'>
+    <p>[TODO: Simple example using result set management]</p>
+  </section2>
+
+  <section2 topic='Filter Notifications' anchor='reader-filter'>
+    <p>[TODO: How far do we want to go ? Basic filtering by type ? Filtering inside payloads ? Allow for more specific rules supporting comparators etc... almost replicating a full blown SQL ? We need to strike a balance between filtering on server and in the client.]</p>
+  </section2>
+
+  <section2 topic='Search Notifications' anchor='reader-search'>
+    <p>[TODO: Similar and linked to previous item: how far to go ?]</p>
+  </section2>
+
+  <section2 topic='Combination of Search, Filter and Paginate' anchor='reader-combo'>
+    <p>[TODO: Depends on decision for previous points</p>
+  </section2>
+
+</section1>
+
+<section1 topic='Business Rules' anchor='rules'>
+  <p>OPTIONAL.</p>
+</section1>
+<section1 topic='Implementation Notes' anchor='impl'>
+  <p>OPTIONAL.</p>
+</section1>
+<section1 topic='Accessibility Considerations' anchor='access'>
+  <p>OPTIONAL.</p>
+</section1>
+<section1 topic='Internationalization Considerations' anchor='i18n'>
+  <p>OPTIONAL.</p>
+</section1>
+<section1 topic='Security Considerations' anchor='security'>
+  <p>REQUIRED.</p>
+</section1>
+<section1 topic='IANA Considerations' anchor='iana'>
+  <p>REQUIRED.</p>
+</section1>
+<section1 topic='XMPP Registrar Considerations' anchor='registrar'>
+  <p>REQUIRED.</p>
+</section1>
+<section1 topic='XML Schema' anchor='schema'>
+  <p>REQUIRED for protocol specifications.</p>
+</section1>
+</xep>
