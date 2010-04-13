@@ -85,7 +85,7 @@
     <example caption='User Publishes a New Status Updated Activity'><![CDATA[
 <iq type='set'
     from='hamlet@denmark.lit/snsclient'
-    to='denmark.lit'
+    to='hamlet@denmark.lit'
     id='osw1'>
  <pubsub xmlns='http://jabber.org/protocol/pubsub'>
     <publish node='urn:xmpp:microblog:0'>
@@ -117,7 +117,7 @@
     <example caption='User shares a picture with members of his family roster group'><![CDATA[
 <iq type='set'
     from='hamlet@denmark.lit/snsclient'
-    to='denmark.lit'
+    to='hamlet@denmark.lit'
     id='osw2'>
  <pubsub xmlns='http://jabber.org/protocol/pubsub'>
     <publish node='urn:xmpp:microblog:0'>
@@ -157,7 +157,7 @@
     <example caption='User updates an activity'><![CDATA[
 <iq type='set'
     from='hamlet@denmark.lit/snsclient'
-    to='denmark.lit'
+    to='hamlet@denmark.lit'
     id='osw4'>
  <pubsub xmlns='http://jabber.org/protocol/pubsub'>
     <publish node='urn:xmpp:microblog:0'>
@@ -194,7 +194,7 @@
     <example caption='User delete an activity'><![CDATA[
 <iq type='set'
     from='hamlet@denmark.lit/snsclient'
-    to='denmark.lit'
+    to='hamlet@denmark.lit'
     id='osw3'>
  <pubsub xmlns='http://jabber.org/protocol/pubsub'>
     <retract node='urn:xmpp:microblog:0'>
