@@ -185,7 +185,7 @@
 <iq type='result'
     from='juliet@capulet.lit' 
     to='romeo@montague.lit/orchard'>
-  <query xmlns="http://onesocialweb.org/spec/1.0/vcard4#query>
+  <query xmlns="http://onesocialweb.org/spec/1.0/vcard4#query">
     <vcard xmlns="urn:ietf:params:xml:ns:vcard-4.0">
       <fn>
         <text>Juliet Capulet</text>
