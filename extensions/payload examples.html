@@ -1,0 +1,174 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>Payload Examples</title></head>
+
+<body>
+
+<h1>Payload Examples</h1>
+&nbsp;
+<table border="0">
+<tr><td><strong>Author:</strong></td><td>Diana Cheng</td></tr>
+<tr><td><strong>Copyright:</strong></td><td>© 2011 Vodafone Group R&amp;D.</td></tr>
+<tr><td><strong>Version:</strong></td><td>0.2 </td></tr>
+<tr><td><strong>Last Updated:</strong></td><td>2011-04-08</td></tr>
+</table>
+<p>
+<hr /><hr />
+
+
+<h2>Table of Contents</h2>
+1. <a href="#act">Activity Streams</a><br/>
+2. <a href="#replies">Comments or Replies</a><br/>
+3. <a href="#shouts">Shouts or Mentions</a><br/>
+
+<br/>
+<hr /><br/>
+
+<h2 name="act" id="act"> 1. Activity Streams </h2>
+
+We are using the <a href="http://activitystrea.ms/spec/1.0/atom-activity-02.htm">Activity Streams</a> specification, which has evolved in the last months. Most notably, the <b>&lt;activity:actor&gt;</b> element has been obsoleted, and the <b>&lt;atom:author&gt;</b> element is used instead, represented as an activity object of type "person". Please note, that the clients do not need to attach the author information to an activity, but it is the responsibility of the user's server to do that, in order to avoid spoofing. <br>
+
+Also, the object-type to be used is the Activity Streams' "status". Previously we were using our own namespace: http://onesocialweb.org/spec/1.0/object/status , but there is no longer need for this since the Activity Streams spec provides us with a standard namespace. 
+<p>
+
+When updated by the server, the activity entry will look as follows: <p> &nbsp; <br>
+
+<font face="Courier New" size="2">
+
+ &nbsp;&nbsp;       &lt;entry xmlns="http://www.w3.org/2005/Atom" <br>
+ &nbsp;&nbsp;   &nbsp;&nbsp; &nbsp;&nbsp;   &nbsp;&nbp; &nbsp;&nbsp;          xmlns:activity="http://activitystrea.ms/spec/1.0/" <br>
+ &nbsp;&nbsp;    &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp;           xmlns:osw="http://onesocialweb.org/spec/1.0/"&gt;<br>
+&nbsp;&nbsp; &nbsp;&nbsp; 	 <font color="red"> &lt;author&gt;<br>
+ &nbsp;&nbsp; 	&nbsp;&nbsp; &nbsp;&nbsp;    &lt;activity:object-type>http://activitystrea.ms/schema/1.0/person&lt;/activity:object-type&gt; <br>
+&nbsp;&nbsp;  &nbsp;&nbsp; &nbsp;&nbsp;	    &lt;uri&gt;hamlet@denmark.lit&lt/uri&gt; <br>
+&nbsp;&nbsp; 	&nbsp;&nbsp; &nbsp;&nbsp;    &lt;name&gt;Hamlet&lt;/name&gt; <br>
+&nbsp;&nbsp; 	&nbsp;&nbsp; &nbsp;&nbsp;    &lt;email&gt;hamlet@gmail.com&lt;/email&gt; <br>
+&nbsp;&nbsp; &nbsp;&nbsp; 	  &lt;/author&gt; <br> </font>
+&nbsp;&nbsp; &nbsp;&nbsp;           &lt;title&gt;to be or not to be ?&lt;/title&gt; <br>
+&nbsp;&nbsp; &nbsp;&nbsp;           &lt;activity:verb&gt;http://activitystrea.ms/schema/1.0/post&lt;/activity:verb&gt; <br>
+&nbsp;&nbsp; &nbsp;&nbsp;           &lt;activity:object&gt; <br>
+ &nbsp;&nbsp;  &nbsp;&nbsp; &nbsp;&nbsp;          &lt;activity:object-type> <font color="red">http://activitystrea.ms/schema/1.0/status</font> &lt;/activity:object-type&gt;<br>
+ &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp;           &lt;content type="text/plain">to be or not to be ?&lt;/content&gt; <br>
+&nbsp;&nbsp; &nbsp;&nbsp;           &lt;/activity:object&gt; <br>
+ &nbsp;&nbsp;  &nbsp;&nbsp;         &lt;osw:acl-rule&gt; <br>
+&nbsp;&nbsp;  &nbsp;&nbsp;  &nbsp;&nbsp;            &lt;osw:acl-action permission="http://onesocialweb.org/spec/1.0/acl/permission/grant"&gt; <br>
+&nbsp;&nbsp;  &nbsp;&nbsp;   &nbsp;&nbsp;  &nbsp;&nbsp;               http://onesocialweb.org/spec/1.0/acl/action/view <br>
+&nbsp;&nbsp;   &nbsp;&nbsp;  &nbsp;&nbsp;           &lt;/osw:acl-action&gt; <br>
+&nbsp;&nbsp;    &nbsp;&nbsp;  &nbsp;&nbsp;          &lt;osw:acl-subject type="http://onesocialweb.org/spec/1.0/acl/subject/everyone"/&gt; <br>
+ &nbsp;&nbsp;  &nbsp;&nbsp;         &lt;/osw:acl-rule&gt; <br>
+&nbsp;&nbsp;         &lt;/entry&gt; <br>
+ 
+</font>
+&nbsp;
+<p/>
+
+Note: Some systems such as Identi.ca use the activity:object-type "note": http://activitystrea.ms/schema/1.0/note . Both "note" and "status" aim at represeting short messages posted by the user in the context of microblogging, but the "status" type refers more specifically to the current situation or mood of the user.
+<p> &nbsp; <p> 
+
+<h2 name="replies" id="replies">2. Comments or Replies</h2>
+When an activity contains comments or replies, this will be indicated with the elements highlighted below, which come from the <a href="http://tools.ietf.org/html/rfc4685">Atom Threading Extension </a> specification :  <p> &nbsp; <br> 
+
+<font face="Courier New" size="2">
+
+ &nbsp;&nbsp;        &lt;entry xmlns="http://www.w3.org/2005/Atom" <br> 
+  &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp;              xmlns:activity="http://activitystrea.ms/spec/1.0/"  <br>
+  &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp;              xmlns:osw="http://onesocialweb.org/spec/1.0/" <br>
+ &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp;	       xmlns:thr="http://purl.org/syndication/thread/1.0" &gt; <br>
+ &nbsp;&nbsp; &nbsp;&nbsp;	  &lt;author&gt; <br>
+  &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp;	    &lt;activity:object-type>http://activitystrea.ms/schema/1.0/person&lt;/activity:object-type&gt; <br>
+  &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp;	    &lt;uri&gt;hamlet@denmark.lit&lt;/uri&gt; <br>
+ &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp;	    &lt;name&gt;Hamlet&lt;/name&gt; <br>
+ &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp;	    &lt;email&gt;hamlet@gmail.com&lt;/email&gt; <br>
+ &nbsp;&nbsp; &nbsp;&nbsp;	  &lt;/author&gt; <br>
+ &nbsp;&nbsp; &nbsp;&nbsp;         &lt;title&gt;to be or not to be ?&lt;/title&gt; <br>
+  &nbsp;&nbsp; &nbsp;&nbsp;        &lt;activity:verb&gt;http://activitystrea.ms/schema/1.0/post&lt;/activity:verb&gt; <br>
+ &nbsp;&nbsp;  &nbsp;&nbsp;        &lt;activity:object&gt; <br>
+ &nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;           &lt;activity:object-type&gt;http://activitystrea.ms/schema/1.0/status&lt;/activity:object-type&gt; <br>
+  &nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;             &lt;content type="text/plain"&gt;to be or not to be ?&lt;/content&gt; <br>
+    &nbsp;&nbsp; &nbsp;&nbsp;        &lt;/activity:object&gt; <br>
+    &nbsp;&nbsp; &nbsp;&nbsp;  	<font color="red">  &lt;link rel="replies" type="application/atom+xml" thr:count="1"/&gt; <br> </font>
+       &nbsp;&nbsp; &nbsp;&nbsp;         &lt;osw:acl-rule&gt; <br>
+       &nbsp;&nbsp; &nbsp;&nbsp;    &nbsp;&nbsp;         &lt;osw:acl-action permission="http://onesocialweb.org/spec/1.0/acl/permission/grant"&gt; <br>
+       &nbsp;&nbsp; &nbsp;&nbsp;    &nbsp;&nbsp;   &nbsp;&nbsp;      http://onesocialweb.org/spec/1.0/acl/action/view <br>
+            &nbsp;&nbsp; &nbsp;&nbsp;    &nbsp;&nbsp;        &lt;/osw:acl-action&gt; <br>
+    &nbsp;&nbsp; &nbsp;&nbsp;         &lt;/osw:acl-rule&gt; <br> 
+ &nbsp;&nbsp;           &lt;/entry&gt; <br>
+
+</font>
+
+<p>&nbsp; <p> 
+
+The representation of a comment will also make use of the Atom Threading Extension specification. It will contain an alternate representation (link element with rel="alternate", stamped by the thread initiator's server and containing the id of the comment) and the <in-reply-to> element to reference the parent activity which is sent by the client. <br/><br/>
+The object-type that should be used in this case is the Activity Streams' comment: <b>http://activitystrea.ms/schema/1.0/comment</b>. We will previously using our namespace but that should be considered obsolote. A comment entry will therefore have the following structure: <p> &nbsp; <br> 
+
+<font face="Courier New" size="2">
+
+ &nbsp;&nbsp;   	&lt;entry xmlns="http://www.w3.org/2005/Atom"  <br> 
+  &nbsp;&nbsp;  &nbsp;&nbsp;    &nbsp;&nbsp;    &nbsp;&nbsp;                   xmlns:activity="http://activitystrea.ms/spec/1.0/" <br> 
+   &nbsp;&nbsp; &nbsp;&nbsp;   &nbsp;&nbsp;   &nbsp;&nbsp;xmlns:osw="http://onesocialweb.org/spec/1.0/" <br> 
+  &nbsp;&nbsp; &nbsp;&nbsp;   xmlns:thr="http://purl.org/syndication/thread/1.0"&gt; <br> 
+  &nbsp;&nbsp;  &nbsp;&nbsp;      	 &lt;author&gt; <br> 
+  &nbsp;&nbsp;   &nbsp;&nbsp;    &nbsp;&nbsp;    	    &lt;activity:object-type&gt;http://activitystrea.ms/schema/1.0/person&lt;/activity:object-type&gt; <br> 
+  &nbsp;&nbsp;   &nbsp;&nbsp;    &nbsp;&nbsp;    	    &lt;uri&gt;hamlet@denmark.lit&lt;/uri&gt; <br> 
+ &nbsp;&nbsp;    &nbsp;&nbsp;    &nbsp;&nbsp;   	    &lt;name&gt;Hamlet&lt;/name&gt; <br> 
+ &nbsp;&nbsp;    &nbsp;&nbsp;    &nbsp;&nbsp;   	    &lt;email&gt;hamlet@gmail.com&lt;/email&gt; <br> 
+ &nbsp;&nbsp;    &nbsp;&nbsp;     	  &lt;/author&gt; <br> 
+	<font color="red">
+ &nbsp;&nbsp;  &nbsp;&nbsp;      	 &lt;link rel="alternate" type="text/html" href="xmpp:hamlet@denmark.lit?;node=urn:xmpp:microblog:0:replies:item=urn:uuid:c41b4b7b-5aaf-4d0d-a66d-33d40695f587"/&gt; <br> 
+ &nbsp;&nbsp;   &nbsp;&nbsp;    	&lt;thr:in-reply-to ref="urn:uuid:c40db068-38b7-46f5-948a-e9eac877e87b" href="xmpp:juliet@capulet.lit?;node=urn:xmpp:microblog:0;item=urn:uuid:c40db068-38b7-46f5-948a-e9eac877e87b"/&gt;</font> <br>  
+         
+    &nbsp;&nbsp;     &nbsp;&nbsp;         &lt;title&gt;I think that's a great idea!&lt;/title&gt; <br> 
+    &nbsp;&nbsp;    &nbsp;&nbsp;          &lt;activity:verb&gt;http://activitystrea.ms/schema/1.0/post&lt;/activity:verb&gt; <br> 
+    &nbsp;&nbsp;    &nbsp;&nbsp;          &lt;activity:object&gt; <br> 
+     &nbsp;&nbsp;  &nbsp;&nbsp;    &nbsp;&nbsp;             &lt;activity:object-type&gt;<font color="red">http://activitystrea.ms/schema/1.0/comment</font>&lt;/activity:object-type&gt; <br> 
+     &nbsp;&nbsp;  &nbsp;&nbsp;    &nbsp;&nbsp;             &lt;content type="text/plain"&gt;I think that's a great idea!&lt;/content&gt; <br> 
+    &nbsp;&nbsp;   &nbsp;&nbsp;           &lt;/activity:object&gt; <br> 
+    &nbsp;&nbsp;  &nbsp;&nbsp;        &lt;osw:acl-rule&gt; <br> 
+    &nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;           &lt;osw:acl-action permission="http://onesocialweb.org/spec/1.0/acl/permission/grant"&gt;<br> 
+    &nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;             http://onesocialweb.org/spec/1.0/acl/action/view <br> 
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;            &lt;/osw:acl-action&gt; <br> 
+    &nbsp;&nbsp;  &nbsp;&nbsp;&nbsp;&nbsp;          &lt;osw:acl-subject type="http://onesocialweb.org/spec/1.0/acl/subject/everyone"/&gt; <br> 
+    &nbsp;&nbsp;&nbsp;&nbsp;          &lt;/osw:acl-rule&gt; <br> 
+    &nbsp;&nbsp;        &lt;/entry&gt; <br> 
+
+</font>
+<p> &nbsp; <p> 
+
+<h2 name="shouts" id="shouts">3. Shouts or Mentions</h2>
+In OneSocialWeb we also have the notion of shouts or mentions. Besides from mentioning someone "inline", i.e. in the middle of the text of a post, it also serves as a way specify a recipient for the status update or message. For example, a user might set the visibility of a given post to the group "colleagues" but will decide to also include his wife (wife@betavine.net) as a shout recipient. That means that besides from everyone in the "colleagues" group, wife@betavine.net will also get the message.  <p>
+
+Until now, in order to map the shouts or mentions in the activity streams payloads, the &lt;in-reply-to&gt; element had been used. This is not correct as that element is only meant to reference parent activities of a comment. Instead, the <a href="http://tools.ietf.org/html/draft-norris-atompub-audience-00 " >Atom Audience Extension</a> should be used. <p>
+
+And activity which contains a shout will look like: <p> &nbsp; <br>
+
+<font face="Courier New" size="2">
+
+&nbsp; &nbsp;       &lt;entry xmlns="http://www.w3.org/2005/Atom"  <br> 
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;              xmlns:activity="http://activitystrea.ms/spec/1.0/"  <br> 
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;           xmlns:osw="http://onesocialweb.org/spec/1.0/" &gt; <br> 
+&nbsp; &nbsp; &nbsp; &nbsp;	  &lt;author&gt; <br> 
+&nbsp; &nbsp; &nbsp; &nbsp;&nbsp;&nbsp; 	    &lt;activity:object-type&gt; http://activitystrea.ms/schema/1.0/person&lt;/activity:object-type&gt; <br> 
+&nbsp; &nbsp; &nbsp; &nbsp;&nbsp;&nbsp; 	    &lt;uri&gt;dan@vodafonernd.com&lt;/uri&gt; <br> 
+&nbsp; &nbsp; &nbsp; &nbsp;&nbsp;&nbsp;	    &lt;name&gt;Dan Appelquist&lt;/name&gt; <br> 
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;	    &lt;email&gt;dcheng@vodafone.com&lt;/email&gt; <br> 
+&nbsp; &nbsp; &nbsp; &nbsp;	  &lt;/author&gt; <br> 
+ &nbsp; &nbsp; &nbsp; &nbsp;         &lt;title&gt; Tomorrow I'm going to work from home!&lt;/title&gt;  <br> 
+ &nbsp; &nbsp; &nbsp; &nbsp;         &lt;activity:verb&gt; http://activitystrea.ms/schema/1.0/post&lt;/activity:verb&gt; <br> 
+&nbsp; &nbsp; &nbsp; &nbsp;          &lt;activity:object&gt; <br> 
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;            &lt;activity:object-type&gt; http://onesocialweb.org/spec/1.0/object/status&lt;/activity:object-type&gt; <br> 
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;            &lt;content type="text/plain"&gt; Tomorrow I'm going to work from home!&lt;/content&gt; <br> 
+&nbsp; &nbsp; &nbsp; &nbsp;          &lt;/activity:object&gt; <br> 
+&nbsp; &nbsp; &nbsp; &nbsp;          &lt;osw:acl-rule&gt; <br> 
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;            &lt;osw:acl-action permission="http://onesocialweb.org/spec/1.0/acl/permission/grant"&gt; <br> 
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;              http://onesocialweb.org/spec/1.0/acl/action/view <br> 
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;           &lt;/osw:acl-action&gt; <br> 
+   &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;          &lt;acl-subject type="http://onesocialweb.org/spec/1.0/acl/subject/group"&gt; <br> 
+   &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;         colleagues <br> 
+  &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;       &lt;/acl-subject&gt; <br>  
+ &nbsp; &nbsp; &nbsp; &nbsp;      &lt;/osw:acl-rule&gt; <br> 
+ &nbsp; &nbsp; &nbsp; &nbsp; <font color="red">	  &lt;to>acct:wife@betavine.net&lt;/to&gt;</font> <br>  
+ &nbsp; &nbsp;       &lt;/entry&gt; <br> 
+
+</font>
+<p>
+
+</body>
+</html>
